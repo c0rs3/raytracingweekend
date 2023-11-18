@@ -1,4 +1,4 @@
 Compile and Build
 MSBuild.exe .\build\rtend.vcxproj //TODO add task.json for build
 Run
-Debug > Run
+.\build\Debug\rtend.exe > image.ppm
