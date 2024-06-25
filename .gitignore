@@ -1,6 +1,3 @@
 build
 .vscode
-todo
-*.obj
-*.exe
-how2c
+*.ppm
