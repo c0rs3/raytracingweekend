@@ -1,3 +1,0 @@
-Build
-cmake --build build --config release
-build\Release\rtend.exe > image.ppm
