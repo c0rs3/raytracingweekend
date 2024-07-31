@@ -10,6 +10,7 @@
 #include "rtweekend.h"
 #include "hittable.h"
 #include "material.h"
+#include "benchmark.h"
 
 
 std::string return_current_time_and_date()
@@ -40,9 +41,9 @@ class camera {
 
     void render(const hittable& world) {
         initialize();
-        std::clog << "Render start time: " <<return_current_time_and_date() << std::endl;
+        std::clog << "Render start time: " << return_current_time_and_date() << std::endl;
         std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
-        std::chrono::steady_clock::time_point start = std::chrono::high_resolution_clock::now();
+        benchmark::Benchmark<float> timer;
         for (int j = 0; j < image_height; j++) {
             std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
             for (int i = 0; i < image_width; i++) {
@@ -54,10 +55,9 @@ class camera {
                 write_color(std::cout, pixel_samples_scale * pixel_color);
             }
         }
-        std::chrono::steady_clock::time_point end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<float> render_duration = end - start;
         std::clog << "Render finish time: " << return_current_time_and_date() << std::endl;
-        std::clog << "\rDone.                 \n Time taken to render: " << render_duration.count() << "s";
+        benchmark::log_heap_alloc();
+        std::clog << "\rDone.                 \n";
     }
 
   private:
