@@ -67,11 +67,11 @@ class camera {
         std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
         benchmark::Benchmark<float> timer;
     
-        std::mutex mutex;
+        // std::mutex mutex;
         
         std::vector<std::thread> threads;
         for (int i = 0; i < image_height; i++) {
-            threads.push_back(this->threded(world, mutex, i));
+            threads.push_back(this->threded(world, i));
         }
         
         for (auto& thread : threads) {
@@ -84,20 +84,20 @@ class camera {
         std::clog << "\rDone.                 \n";
     }
 
-    void render_column(const hittable& world, std::mutex& mutex, int i){
+    void render_column(const hittable& world, int i){
         for (int j = 0; j < image_width; j++) {
             color pixel_color(0, 0, 0);
             for (int sample = 0; sample < samples_per_pixel; sample++) {
                 ray r = get_ray(i, j);
                 pixel_color += ray_color(r, max_depth, world);
             }
-            std::lock_guard<std::mutex> lock(mutex);
+
             write_color(std::cout, pixel_samples_scale * pixel_color);
         }
     }
 
-    std::thread threded(const hittable& world, std::mutex& mutex, int i){
-        return std::thread([this, &world, &mutex, &i] {this->render_column(world, mutex, i);});
+    std::thread threded(const hittable& world, int i){
+        return std::thread([this, &world, &i] {this->render_column(world, i);});
     };
 
   private:
