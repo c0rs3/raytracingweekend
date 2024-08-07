@@ -8,12 +8,12 @@
 #include <thread>
 #include <string>
 #include <vector>
+#include <mutex>
 
 #include "rtweekend.h"
 #include "hittable.h"
 #include "material.h"
 #include "benchmark.h"
-
 
 std::string return_current_time_and_date() {
     auto now = std::chrono::system_clock::now();
@@ -63,28 +63,42 @@ class camera {
 
     void threaded_render(const hittable& world) {
         initialize();
-        std::clog << "Threaded render start time: " << return_current_time_and_date() << std::endl;
+        std::clog << "Render start time: " << return_current_time_and_date() << std::endl;
         std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
         benchmark::Benchmark<float> timer;
-        for (int j = 0; j < image_height; j++) {
-            std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
-            for (int i = 0; i < image_width; i++) {
-                color pixel_color = render_column(world, j)[i];
-                // std::clog << pixel_color << std::endl;
-                write_color(std::cout, pixel_color);
-            }
+    
+        std::mutex mutex;
+        
+        std::vector<std::thread> threads;
+        for (int i = 0; i < image_height; i++) {
+            threads.push_back(this->threded(world, mutex, i));
         }
+        
+        for (auto& thread : threads) {
+            thread.join();
+        }
+        
+
         std::clog << "Render finish time: " << return_current_time_and_date() << std::endl;
-        benchmark::log_heap_alloc();
+        // benchmark::log_heap_alloc();
         std::clog << "\rDone.                 \n";
     }
 
-    void thread_columns(const hittable& world){
-        std::vector<std::thread> column_threads;
-        for (int j = 0; j < image_height; j++){
-            std::thread;
+    void render_column(const hittable& world, std::mutex& mutex, int i){
+        for (int j = 0; j < image_width; j++) {
+            color pixel_color(0, 0, 0);
+            for (int sample = 0; sample < samples_per_pixel; sample++) {
+                ray r = get_ray(i, j);
+                pixel_color += ray_color(r, max_depth, world);
+            }
+            std::lock_guard<std::mutex> lock(mutex);
+            write_color(std::cout, pixel_samples_scale * pixel_color);
         }
     }
+
+    std::thread threded(const hittable& world, std::mutex& mutex, int i){
+        return std::thread([this, &world, &mutex, &i] {this->render_column(world, mutex, i);});
+    };
 
   private:
     int    image_height;         // Rendered image height
@@ -179,23 +193,6 @@ class camera {
         vec3 unit_direction = unit_vector(r.direction());
         auto a = 0.5*(unit_direction.y() + 1.0);
         return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
-    }
-
-    std::vector<color> render_column(const hittable& world, int j){
-        std::vector<color> column_pixels;
-        for (int i = 0; i < image_width; i++) {
-            column_pixels.push_back(render_pixel(world, i, j));
-        }
-        return column_pixels;
-    }
-
-    color render_pixel(const hittable& world, int i, int j){
-        color pixel_color(0,0,0);
-        for (int sample = 0; sample < samples_per_pixel; sample++) {
-            ray r = get_ray(i, j);
-            pixel_color += ray_color(r, max_depth, world);
-        }
-        return pixel_samples_scale * pixel_color;
     }
 };
 
