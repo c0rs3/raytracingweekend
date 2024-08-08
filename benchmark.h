@@ -32,7 +32,7 @@ public:
 };
 
 
-void log_heap_alloc(){
+void heap_alloc(){
     std::clog << "Total (heap) allocation size: "<< t_alloc_size << " bytes" << std::endl;
     std::clog << "Total (heap) allocation count: "<< t_alloc_count << " bytes" << std::endl;
 }

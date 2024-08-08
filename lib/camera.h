@@ -26,23 +26,25 @@ std::string return_current_time_and_date() {
 
 class camera {
    public:
-    double aspect_ratio = 1.0;  // Ratio of image width over height
-    int    image_width  = 100;  // Rendered image width in pixel count
-    int    samples_per_pixel = 10;   // Count of random samples for each pixel
-    int    max_depth         = 10;   // Maximum number of ray bounces into scene
+    double aspect_ratio = 1.0;         // Ratio of image width over height
+    int    image_width  = 100;         // Rendered image width in pixel count
+    int    samples_per_pixel = 10;     // Count of random samples for each pixel
+    int    max_depth         = 10;     // Maximum number of ray bounces into scene
 
     point3 lookfrom = point3(0,0,0);   // Point camera is looking from
     point3 lookat   = point3(0,0,-1);  // Point camera is looking at
     vec3   vup      = vec3(0,1,0);     // Camera-relative "up" direction
 
-    double defocus_angle = 0;  // Variation angle of rays through each pixel
-    double focus_dist = 10;    // Distance from camera lookfrom point to plane of perfect focus
+    double defocus_angle = 0;          // Variation angle of rays through each pixel
+    double focus_dist = 10;            // Distance from camera lookfrom point to plane of perfect focus
 
-    double vfov = 90;  // Vertical view angle (field of view)
+    double vfov = 90;                  // Vertical view angle (field of view)
+
+    std::vector<std::vector<color>> image; // 2D Vector for storing pixel calculations of threads
 
     void render(const hittable& world) {
         initialize();
-        std::clog << "Render start time: " << return_current_time_and_date() << std::endl;
+        std::clog << "[" << return_current_time_and_date() <<"] " << "Render started" << std::endl;
         std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
         benchmark::Benchmark<float> timer;
         for (int j = 0; j < image_height; j++) {
@@ -56,49 +58,57 @@ class camera {
                 write_color(std::cout, pixel_samples_scale * pixel_color);
             }
         }
-        std::clog << "Render finish time: " << return_current_time_and_date() << std::endl;
-        benchmark::log_heap_alloc();
-        std::clog << "\rDone.                 \n";
+        benchmark::heap_alloc();
+        std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished" << std::endl;
     }
 
     void threaded_render(const hittable& world) {
+        std::mutex mutex;
         initialize();
-        std::clog << "Render start time: " << return_current_time_and_date() << std::endl;
+
+        std::clog << "[" << return_current_time_and_date() <<"] " << "Render started" << std::endl;
         std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
         benchmark::Benchmark<float> timer;
-    
-        // std::mutex mutex;
-        
+
+        image.resize(image_height, std::vector<color>(image_width));
+
         std::vector<std::thread> threads;
         for (int i = 0; i < image_height; i++) {
-            threads.push_back(this->threded(world, i));
+            threads.push_back(this->threaded(world, i, mutex)); 
         }
-        
+
         for (auto& thread : threads) {
             thread.join();
         }
-        
 
-        std::clog << "Render finish time: " << return_current_time_and_date() << std::endl;
-        // benchmark::log_heap_alloc();
-        std::clog << "\rDone.                 \n";
+        std::clog << "[" << return_current_time_and_date() <<"] " << "All thread workers finished" << std::endl;
+
+        for (int i = 0; i < image_height; i++) {
+            std::clog << "\rScanlines remaining: " << (image_height - i) << ' ' << std::flush;
+            for (int j = 0; j < image_width; j++){
+                write_color(std::cout, image[i][j]);
+            }
+        }
+        std::clog << std::flush;
+        std::clog << "\r [" << return_current_time_and_date() <<"] " << "Render finished" << std::endl;
     }
 
-    void render_column(const hittable& world, int i){
+    void render_column(const hittable& world, int i, std::mutex& mutex) {
         for (int j = 0; j < image_width; j++) {
             color pixel_color(0, 0, 0);
             for (int sample = 0; sample < samples_per_pixel; sample++) {
-                ray r = get_ray(i, j);
+                ray r = get_ray(j, i);
                 pixel_color += ray_color(r, max_depth, world);
             }
-
-            write_color(std::cout, pixel_samples_scale * pixel_color);
+            // Lock the mutex before writing to the image vector
+            std::lock_guard<std::mutex> lock(mutex);
+            image[i][j] = pixel_samples_scale * pixel_color;
         }
     }
 
-    std::thread threded(const hittable& world, int i){
-        return std::thread([this, &world, &i] {this->render_column(world, i);});
-    };
+    std::thread threaded(const hittable& world, int i, std::mutex& mutex) {
+        return std::thread([this, &world, i, &mutex] { this->render_column(world, i, mutex); });
+    }
 
   private:
     int    image_height;         // Rendered image height
