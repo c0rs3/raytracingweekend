@@ -14,7 +14,6 @@ template<typename type>
 class Benchmark {
 private:
 public:
-    static size_t alloc_size;
 
 	std::chrono::duration<type> duration;
     std::chrono::steady_clock::time_point start; 
