@@ -1,9 +1,6 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#define THREAD_COUNT std::thread::hardware_concurrency()
-
-
 #include <chrono>
 #include <ctime>
 #include <sstream>
@@ -18,12 +15,17 @@
 #include "material.h"
 #include "benchmark.h"
 
+#define THREAD_COUNT std::thread::hardware_concurrency()
+
 std::string return_current_time_and_date() {
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
+    struct tm time_info;
+    localtime_s(&time_info, &in_time_t); // Using localtime_s for thread safety
+
     std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X");
+    ss << std::put_time(&time_info, "%Y-%m-%d %X");
     return ss.str();
 }
 
@@ -74,9 +76,12 @@ class camera {
         benchmark::Benchmark<float> timer;
 
         image.resize(image_height, std::vector<color>(image_width));
-
+        
+        std::vector<std::vector<color>> image_block;
         std::vector<std::thread> threads;
+
         int rows_per_thread = image_height / THREAD_COUNT;
+        image_block.resize(rows_per_thread - 1, std::vector<color>(image_width));
 
         std::clog << "[" << return_current_time_and_date() <<"] " << "CPU Thread amount: " << THREAD_COUNT << std::endl;
 
@@ -85,17 +90,14 @@ class camera {
             int end_row = (t + 1) * rows_per_thread - 1;
             
             if (t == THREAD_COUNT - 1) {
-                end_row = image_height;
+                end_row = image_height - 1;
             }
-            
+            // std::clog << start_row << " " << end_row << std::endl;
             threads.push_back(this->threaded_render_rows(world, start_row, end_row, mutex));
-            std::clog << "Queued: " << start_row << " to "<< end_row << std::endl;
         }
 
-        std::clog << threads.size() << std::endl;
-
-        #if 1
         std::clog << "[" << return_current_time_and_date() <<"] " << "Thread amount: " << threads.size() << std::endl;
+
         for (auto& thread : threads) {
             thread.join();
         }
@@ -105,27 +107,26 @@ class camera {
         for (int j = 0; j < image_height; j++) {
             std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
             for (int i = 0; i < image_width; i++){
-                write_color(std::cout, image[i][j]);
+                write_color(std::cout, image[j][i]);
             }
         }
 
         std::clog << std::flush;
         std::clog << "\r [" << return_current_time_and_date() <<"] " << "Render finished" << std::endl;
-        #endif
     }
 
     void render_rows(const hittable& world, int start_row, int end_row, std::mutex& mutex) {
-        for (int j = start_row; j < end_row; j++) {
+        for (int j = start_row; j <= end_row; j++) {
             for (int i = 0; i < image_width; i++) {
                 color pixel_color(0, 0, 0);
                 for (int sample = 0; sample < samples_per_pixel; sample++) {
                     ray r = get_ray(i, j);
                     pixel_color += ray_color(r, max_depth, world);
                 }
-                image[i][j] = pixel_samples_scale * pixel_color;
+                std::lock_guard<std::mutex> mutex(mutex);
+                image[j][i] = pixel_color * pixel_samples_scale;
             }
         }
-        std::lock_guard<std::mutex> lock(mutex);
     }
 
     std::thread threaded_render_rows(const hittable& world, int start_row, int end_row, std::mutex& mutex) {
