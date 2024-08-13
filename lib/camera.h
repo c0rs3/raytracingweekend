@@ -67,7 +67,7 @@ class camera {
         std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished" << std::endl;
     }
 
-    void threaded_render(const hittable& world) {
+    void threaded_render(const hittable& world){
         std::mutex mutex;
         initialize();
 
@@ -80,10 +80,14 @@ class camera {
         std::vector<std::vector<color>> image_block;
         std::vector<std::thread> threads;
 
-        int rows_per_thread = image_height / THREAD_COUNT;
-        image_block.resize(rows_per_thread - 1, std::vector<color>(image_width));
+        int remainder_rows_amount = (image_height % THREAD_COUNT) > 0 ? image_height % THREAD_COUNT : 0;
+        std::clog << remainder_rows_amount<< std::endl;
+
+        int rows_per_thread = (image_height - remainder_rows_amount) / THREAD_COUNT;
+
 
         std::clog << "[" << return_current_time_and_date() <<"] " << "CPU Thread amount: " << THREAD_COUNT << std::endl;
+    #if 1
 
         for (int t = 0; t < THREAD_COUNT; t++) {
             int start_row = t * rows_per_thread;
@@ -91,6 +95,8 @@ class camera {
             
             if (t == THREAD_COUNT - 1) {
                 end_row = image_height - 1;
+                threads.push_back(this->threaded_render_rows(world, start_row, end_row, mutex));
+                break;
             }
             // std::clog << start_row << " " << end_row << std::endl;
             threads.push_back(this->threaded_render_rows(world, start_row, end_row, mutex));
@@ -113,6 +119,7 @@ class camera {
 
         std::clog << std::flush;
         std::clog << "\r [" << return_current_time_and_date() <<"] " << "Render finished" << std::endl;
+    #endif
     }
 
     void render_rows(const hittable& world, int start_row, int end_row, std::mutex& mutex) {
