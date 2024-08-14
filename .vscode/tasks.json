@@ -4,7 +4,7 @@
       {
         "type": "shell",
         "label": "build",
-        "command": "cmake --build build;cmake --build build;build/Debug/rtend.exe > image.ppm",
+        "command": "cmake --build build;cmake --build build;build/Debug/rtend.exe",
         "presentation": {
           "reveal": "always",
           "focus": false,

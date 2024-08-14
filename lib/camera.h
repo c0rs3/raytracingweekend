@@ -14,6 +14,8 @@
 #include "hittable.h"
 #include "material.h"
 #include "benchmark.h"
+#include "bmp.h"
+
 
 #define THREAD_COUNT std::thread::hardware_concurrency()
 
@@ -87,8 +89,7 @@ class camera {
 
 
         std::clog << "[" << return_current_time_and_date() <<"] " << "CPU Thread amount: " << THREAD_COUNT << std::endl;
-    #if 1
-
+        
         for (int t = 0; t < THREAD_COUNT; t++) {
             int start_row = t * rows_per_thread;
             int end_row = (t + 1) * rows_per_thread - 1;
@@ -110,16 +111,10 @@ class camera {
 
         std::clog << "[" << return_current_time_and_date() <<"] " << "All thread workers finished" << std::endl;
 
-        for (int j = 0; j < image_height; j++) {
-            std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
-            for (int i = 0; i < image_width; i++){
-                write_color(std::cout, image[j][i]);
-            }
-        }
+        write_bmp("image.bmp", image, image_width, image_height);
 
         std::clog << std::flush;
         std::clog << "\r [" << return_current_time_and_date() <<"] " << "Render finished" << std::endl;
-    #endif
     }
 
     void render_rows(const hittable& world, int start_row, int end_row, std::mutex& mutex) {
