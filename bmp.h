@@ -3,28 +3,26 @@
 void write_bmp(const std::string& filename, const std::vector<std::vector<color>>& image, int image_width, int image_height) {
     std::ofstream file(filename, std::ios::out | std::ios::binary);
 
-    // Define BMP file header
     unsigned char bmp_file_header[14] = {
-        'B', 'M',  // Signature
+        'B', 'M',    // Signature
         0, 0, 0, 0,  // File size in bytes
-        0, 0,  // Reserved
-        0, 0,  // Reserved
+        0, 0,        // Reserved
+        0, 0,        // Reserved
         54, 0, 0, 0  // Starting address of pixel array
     };
 
-    // Define BMP information header
     unsigned char bmp_info_header[40] = {
         40, 0, 0, 0,  // Header size
-        0, 0, 0, 0,  // Image width
-        0, 0, 0, 0,  // Image height
-        1, 0,  // Number of color planes
-        24, 0,  // Bits per pixel
-        0, 0, 0, 0,  // Compression method (0 = no compression)
-        0, 0, 0, 0,  // Image size (can be 0 for uncompressed)
-        0, 0, 0, 0,  // Horizontal resolution (pixels per meter)
-        0, 0, 0, 0,  // Vertical resolution (pixels per meter)
-        0, 0, 0, 0,  // Number of colors in palette
-        0, 0, 0, 0   // Number of important colors
+        0, 0, 0, 0,   // Image width
+        0, 0, 0, 0,   // Image height
+        1, 0,         // Number of color planes
+        24, 0,        // Bits per pixel
+        0, 0, 0, 0,   // Compression method (0 = no compression)
+        0, 0, 0, 0,   // Image size (can be 0 for uncompressed)
+        0, 0, 0, 0,   // Horizontal resolution (pixels per meter)
+        0, 0, 0, 0,   // Vertical resolution (pixels per meter)
+        0, 0, 0, 0,   // Number of colors in palette
+        0, 0, 0, 0    // Number of important colors
     };
 
     int file_size = 54 + 3 * image_width * image_height;
@@ -55,9 +53,9 @@ void write_bmp(const std::string& filename, const std::vector<std::vector<color>
             unsigned char g = static_cast<unsigned char>(255.99 * pixel.y());
             unsigned char b = static_cast<unsigned char>(255.99 * pixel.z());
 
-            file.put(b);  // Blue
-            file.put(g);  // Green
-            file.put(r);  // Red
+            file.put(b);
+            file.put(g);
+            file.put(r);
         }
     }
 
