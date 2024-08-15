@@ -102,7 +102,7 @@ class camera {
         for (auto& thread : threads) {
             thread.join();
         }
-        
+        std::clog << std::endl;
         std::clog << "[" << return_current_time_and_date() <<"] " << "All thread workers finished" << std::endl;
 
         write_bmp("image.bmp", image, image_width, image_height);
