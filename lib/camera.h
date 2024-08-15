@@ -74,21 +74,14 @@ class camera {
         initialize();
 
         std::clog << "[" << return_current_time_and_date() <<"] " << "Render started" << std::endl;
-        std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
         benchmark::Benchmark<float> timer;
 
         image.resize(image_height, std::vector<color>(image_width));
-        
-        std::vector<std::vector<color>> image_block;
+
         std::vector<std::thread> threads;
 
         int remainder_rows_amount = (image_height % THREAD_COUNT) > 0 ? image_height % THREAD_COUNT : 0;
-        std::clog << remainder_rows_amount<< std::endl;
-
         int rows_per_thread = (image_height - remainder_rows_amount) / THREAD_COUNT;
-
-
-        std::clog << "[" << return_current_time_and_date() <<"] " << "CPU Thread amount: " << THREAD_COUNT << std::endl;
         
         for (int t = 0; t < THREAD_COUNT; t++) {
             int start_row = t * rows_per_thread;
@@ -103,12 +96,13 @@ class camera {
             threads.push_back(this->threaded_render_rows(world, start_row, end_row, mutex));
         }
 
+        threads_remaining = threads.size(); 
         std::clog << "[" << return_current_time_and_date() <<"] " << "Thread amount: " << threads.size() << std::endl;
 
         for (auto& thread : threads) {
             thread.join();
         }
-
+        
         std::clog << "[" << return_current_time_and_date() <<"] " << "All thread workers finished" << std::endl;
 
         write_bmp("image.bmp", image, image_width, image_height);
@@ -129,6 +123,8 @@ class camera {
                 image[j][i] = pixel_color * pixel_samples_scale;
             }
         }
+        threads_remaining--;
+        std::clog << "\r" << "[" << return_current_time_and_date() << "] "<< threads_remaining << " worker(s) left" << std::flush;
     }
 
     std::thread threaded_render_rows(const hittable& world, int start_row, int end_row, std::mutex& mutex) {
@@ -163,6 +159,7 @@ class camera {
 
     vec3   defocus_disk_u;       // Defocus disk horizontal radius
     vec3   defocus_disk_v;       // Defocus disk vertical radius
+    uint32_t threads_remaining = 0;
 
     void initialize() {
         image_height = int(image_width / aspect_ratio);
