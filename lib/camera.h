@@ -83,7 +83,7 @@ class camera {
         int remainder_rows_amount = (image_height % THREAD_COUNT) > 0 ? image_height % THREAD_COUNT : 0;
         int rows_per_thread = (image_height - remainder_rows_amount) / THREAD_COUNT;
         
-        for (int t = 0; t < THREAD_COUNT; t++) {
+        for (unsigned int t = 0; t < THREAD_COUNT; t++) {
             int start_row = t * rows_per_thread;
             int end_row = (t + 1) * rows_per_thread - 1;
             
@@ -159,7 +159,7 @@ class camera {
 
     vec3   defocus_disk_u;       // Defocus disk horizontal radius
     vec3   defocus_disk_v;       // Defocus disk vertical radius
-    uint32_t threads_remaining = 0;
+    size_t threads_remaining = 0;
 
     void initialize() {
         image_height = int(image_width / aspect_ratio);
