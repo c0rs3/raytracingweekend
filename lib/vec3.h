@@ -108,11 +108,15 @@ inline vec3 unit_vector(const vec3& v) {
 }
 
 inline vec3 random_in_unit_sphere() {
-    while (true) {
-        auto p = vec3::random(-1,1);
-        if (p.length_squared() < 1)
-            return p;
-    }
+    auto theta = 2.0 * pi * random_double();
+    auto phi = std::acos(2.0 * random_double() - 1.0);
+    auto r = std::cbrt(random_double());
+
+    auto x = r * std::sin(phi) * std::cos(theta);
+    auto y = r * std::sin(phi) * std::sin(theta);
+    auto z = r * std::cos(phi);
+
+    return vec3(x, y, z);
 }
 
 inline vec3 random_unit_vector() {
@@ -139,11 +143,13 @@ inline vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
 }
 
 inline vec3 random_in_unit_disk() {
-    while (true) {
-        auto p = vec3(random_double(-1,1), random_double(-1,1), 0);
-        if (p.length_squared() < 1)
-            return p;
-    }
+    auto theta = 2.0 * pi * random_double();
+    auto r = std::sqrt(random_double());
+
+    auto x = r * std::cos(theta);
+    auto y = r * std::sin(theta);
+
+    return vec3(x, y, 0);
 }
 
 #endif
