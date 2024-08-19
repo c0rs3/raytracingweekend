@@ -10,6 +10,8 @@
 
 // C++ Std Usings
 
+static std::mt19937 generator;
+
 using std::make_shared;
 using std::shared_ptr;
 using std::sqrt;
@@ -28,13 +30,11 @@ inline double degrees_to_radians(double degrees) {
 
 inline double random_double() {
     static std::uniform_real_distribution<double> distribution(0.0, 1.0);
-    static std::mt19937 generator;
     return distribution(generator);
 }
 
 inline double random_double(double min, double max) {
     static std::uniform_real_distribution<double> distribution(min, max);
-    static std::mt19937 generator;
     return distribution(generator);
 }
 
