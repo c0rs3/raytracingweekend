@@ -108,13 +108,13 @@ inline vec3 unit_vector(const vec3& v) {
 }
 
 inline vec3 random_in_unit_sphere() {
-    auto theta = 2.0 * pi * random_double();
-    auto phi = std::acos(2.0 * random_double() - 1.0);
-    auto r = std::cbrt(random_double());
-
-    auto x = r * std::sin(phi) * std::cos(theta);
-    auto y = r * std::sin(phi) * std::sin(theta);
-    auto z = r * std::cos(phi);
+    double theta = acos(1 - 2 * distribution(generator));   
+    double phi = 2 * pi * distribution(generator);
+    double r = cbrt(distribution(generator));   
+    
+    double x = r * sin(theta) * cos(phi);
+    double y = r * sin(theta) * sin(phi);
+    double z = r * cos(theta);
 
     return vec3(x, y, z);
 }

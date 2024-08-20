@@ -7,10 +7,11 @@
 #include <memory>
 #include <random>
 
+static std::uniform_real_distribution<> distribution(0.0, 1.0);
 
 // C++ Std Usings
-
-static std::mt19937 generator;
+static std::random_device rd;
+static std::mt19937 generator(rd());
 
 using std::make_shared;
 using std::shared_ptr;
@@ -29,12 +30,11 @@ inline double degrees_to_radians(double degrees) {
 }
 
 inline double random_double() {
-    static std::uniform_real_distribution<double> distribution(0.0, 1.0);
     return distribution(generator);
 }
 
 inline double random_double(double min, double max) {
-    static std::uniform_real_distribution<double> distribution(min, max);
+    static std::uniform_real_distribution<> distribution(min, max);
     return distribution(generator);
 }
 
