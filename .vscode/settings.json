@@ -61,6 +61,8 @@
         "thread": "cpp",
         "stop_token": "cpp",
         "mutex": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "array": "cpp",
+        "numbers": "cpp"
     }
 }
