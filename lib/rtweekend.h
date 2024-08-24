@@ -25,6 +25,17 @@ const double pi = 3.1415926535897932385;
 
 // Utility Functions
 
+inline uint32_t xorshift32(uint32_t& state) {
+    state ^= state << 13;
+    state ^= state >> 17;
+    state ^= state << 5;
+    return state;
+}
+
+inline double random_double_xorshift(uint32_t& state) {
+    return xorshift32(state) / static_cast<double>(UINT32_MAX);
+}
+
 inline double degrees_to_radians(double degrees) {
     return degrees * pi / 180.0;
 }
