@@ -12,8 +12,8 @@
 #include "rtweekend.h"
 #include "hittable.h"
 #include "material.h"
-#include "benchmark.h"
-#include "bmp.h"
+#include "../benchmark.h"
+#include "../bmp.h"
 
 
 #define THREAD_COUNT std::thread::hardware_concurrency()
@@ -54,7 +54,7 @@ class camera {
         {
             benchmark::Benchmark<float> timer;
             for (int j = 0; j < image_height; j++) {
-                std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+                std::clog << "\r Scanlines remaining: " << (image_height - j) << ' ' << std::flush;
                 for (int i = 0; i < image_width; i++) {
                     color pixel_color(0,0,0);
                     for (int sample = 0; sample < samples_per_pixel; sample++) {

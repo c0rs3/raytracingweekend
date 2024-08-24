@@ -34,7 +34,6 @@ inline uint32_t xorshift32(uint32_t& state) {
 }
 
 inline double random_double_xorshift(uint32_t& seed) {
-    seed = xorshift32(seed) / static_cast<double>(UINT32_MAX);
     return xorshift32(seed) / static_cast<double>(UINT32_MAX);
 }
 
