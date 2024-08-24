@@ -8,6 +8,7 @@
 #include <random>
 
 static std::uniform_real_distribution<> distribution(0.0, 1.0);
+static uint32_t seed = 12346;
 
 // C++ Std Usings
 static std::random_device rd;
@@ -32,8 +33,9 @@ inline uint32_t xorshift32(uint32_t& state) {
     return state;
 }
 
-inline double random_double_xorshift(uint32_t& state) {
-    return xorshift32(state) / static_cast<double>(UINT32_MAX);
+inline double random_double_xorshift(uint32_t& seed) {
+    seed = xorshift32(seed) / static_cast<double>(UINT32_MAX);
+    return xorshift32(seed) / static_cast<double>(UINT32_MAX);
 }
 
 inline double degrees_to_radians(double degrees) {
