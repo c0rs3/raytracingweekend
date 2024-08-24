@@ -61,7 +61,7 @@ class camera {
                         ray r = get_ray(i, j);
                         pixel_color += ray_color(r, max_depth, world);
                     }
-                    image[j][i];
+                    image[j][i] = pixel_color * pixel_samples_scale; 
                 }
             }
         }
