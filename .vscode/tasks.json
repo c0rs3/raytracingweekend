@@ -4,7 +4,18 @@
       {
         "type": "shell",
         "label": "build",
-        "command": "cmake --build build;cmake --build build;build/Debug/rtend.exe",
+        "command": "cmake --build build;build/Debug/rtend.exe",
+        "presentation": {
+          "reveal": "always",
+          "focus": false,
+          "panel": "shared"
+        },
+        "problemMatcher": []
+      },
+      {
+        "type": "shell",
+        "label": "build",
+        "command": "cmake --build build;build/Debug/rtend.exe",
         "presentation": {
           "reveal": "always",
           "focus": false,
@@ -15,7 +26,7 @@
       {
         "type": "shell",
         "label": "release",
-        "command": "cmake --build build --config release;cmake --build build;build/Debug/rtend.exe > image.ppm",
+        "command": "cmake --build build --config release;build/Debug/rtend.exe > image.ppm",
         "presentation": {
           "reveal": "always",
           "focus": false,
