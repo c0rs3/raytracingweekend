@@ -106,11 +106,12 @@ inline vec3 cross(const vec3& u, const vec3& v) {
 inline vec3 unit_vector(const vec3& v) {
     return v / v.length();
 }
+uint32_t seed = 102;
 
 inline vec3 random_in_unit_sphere() {
-    double theta = acos(1 - 2 * distribution(generator));   
-    double phi = 2 * pi * distribution(generator);
-    double r = cbrt(distribution(generator));   
+    double theta = acos(1 - 2 * random_double_xorshift(seed));   
+    double phi = 2 * pi * random_double_xorshift(seed);
+    double r = cbrt(random_double_xorshift(seed));   
     
     double x = r * sin(theta) * cos(phi);
     double y = r * sin(theta) * sin(phi);
@@ -143,8 +144,8 @@ inline vec3 refract(const vec3& uv, const vec3& n, double etai_over_etat) {
 }
 
 inline vec3 random_in_unit_disk() {
-    auto theta = 2.0 * pi * random_double();
-    auto r = std::sqrt(random_double());
+    auto theta = 2.0 * pi * random_double_xorshift(seed);
+    auto r = std::sqrt(random_double_xorshift(seed));
 
     auto x = r * std::cos(theta);
     auto y = r * std::sin(theta);
