@@ -50,7 +50,7 @@ class camera {
 
     void render(const hittable& world) {
         initialize();
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Render started" << std::endl;
+        std::clog << "[" << return_current_time_and_date() <<"] " << "Render started \n";
         {
             benchmark::Benchmark<float> timer;
             for (int j = 0; j < image_height; j++) {
@@ -66,13 +66,13 @@ class camera {
             }
         }
         write_bmp("image.bmp", image, image_width, image_height);
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished" << std::endl;
+        std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished \n";
     }
 
     void threaded_render(const hittable& world){
         initialize();
 
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Render started" << std::endl;
+        std::clog << "[" << return_current_time_and_date() <<"] " << "Render started \n";
 
         image.resize(image_height, std::vector<color>(image_width));
 
@@ -101,12 +101,12 @@ class camera {
                 thread.join();
             }
         }
-        std::clog << "[" << return_current_time_and_date() <<"] " << "All thread workers finished" << std::endl;
+        std::clog << "[" << return_current_time_and_date() <<"] " << "All thread workers finished \n";
 
         write_bmp("image.bmp", image, image_width, image_height);
         
         std::clog << std::endl;
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished" << std::endl;
+        std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished \n";
     }
 
     void render_rows(const hittable& world, int start_row, int end_row) {
@@ -121,7 +121,7 @@ class camera {
             }
         }
         threads_remaining--;
-        std::clog << "\r" << "[" << return_current_time_and_date() << "] "<< threads_remaining << " worker(s) left" << std::flush;
+        std::clog << "\r[" << return_current_time_and_date() << "] "<< threads_remaining << " worker(s) left" << std::flush;
     }
 
     std::thread threaded_render_rows(const hittable& world, int start_row, int end_row) {
@@ -210,7 +210,7 @@ class camera {
 
     vec3 sample_square() const {
         // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
-        return vec3(random_double() - 0.5, random_double() - 0.5, 0);
+        return vec3(random_double_xorshift(seed) - 0.5, random_double_xorshift(seed) - 0.5, 0);
     }
 
     point3 defocus_disk_sample() const {

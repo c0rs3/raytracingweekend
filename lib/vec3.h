@@ -43,7 +43,7 @@ class vec3 {
     }
 
     static vec3 random() {
-        return vec3(random_double(), random_double(), random_double());
+        return vec3(random_double_xorshift(seed), random_double_xorshift(seed), random_double_xorshift(seed));
     }
 
     static vec3 random(double min, double max) {
