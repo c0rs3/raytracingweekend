@@ -1,5 +1,12 @@
 #pragma once
 #include <fstream>
+
+double linear_to_gamma(double linear_component) {
+    if (linear_component > 0)
+        return std::pow(linear_component, 1/3);
+    return 0;
+}
+
 void write_bmp(const std::string& filename, const std::vector<std::vector<color>>& image, int image_width, int image_height) {
     std::ofstream file(filename, std::ios::out | std::ios::binary);
 
@@ -46,12 +53,16 @@ void write_bmp(const std::string& filename, const std::vector<std::vector<color>
 
     // Write pixel data in BGR format
     for (int j = image_height - 1; j >= 0; j--) {
-        std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
+        std::clog << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; i++) {
             const color& pixel = image[j][i];
             unsigned char r = static_cast<unsigned char>(255.99 * pixel.x());
             unsigned char g = static_cast<unsigned char>(255.99 * pixel.y());
             unsigned char b = static_cast<unsigned char>(255.99 * pixel.z());
+            
+            linear_to_gamma(r);
+            linear_to_gamma(g);
+            linear_to_gamma(b);            
 
             file.put(b);
             file.put(g);
