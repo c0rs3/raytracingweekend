@@ -6,25 +6,29 @@
 #include <limits>
 #include <memory>
 #include <random>
-
-static std::uniform_real_distribution<> distribution(0.0, 1.0);
-static uint32_t seed = 12346;
+#include <thread>
 
 // C++ Std Usings
-static std::random_device rd;
-static std::mt19937 generator(rd());
 
 using std::make_shared;
 using std::shared_ptr;
 using std::sqrt;
 using std::fabs;
 
+// Random generators & seed
+static uint32_t seed = 12346;
+
 // Constants
 
 const double infinity = std::numeric_limits<double>::infinity();
+const double uint32d_limit = static_cast<double>(UINT32_MAX);
 const double pi = 3.1415926535897932385;
 
 // Utility Functions
+
+uint32_t map(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 
 inline uint32_t xorshift32(uint32_t& state) {
     state ^= state << 13;
@@ -33,23 +37,18 @@ inline uint32_t xorshift32(uint32_t& state) {
     return state;
 }
 
-inline double random_double_xorshift(uint32_t& seed) {
-    return xorshift32(seed) / static_cast<double>(UINT32_MAX);
+inline double random_double_xorshift() {
+    thread_local uint32_t seed = static_cast<uint32_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
+    return xorshift32(seed) / uint32d_limit;
+}
+
+inline double random_double_xorshift(double min, double max) {
+    return (xorshift32(seed) / uint32d_limit) * (max - min) + min;
 }
 
 inline double degrees_to_radians(double degrees) {
     return degrees * pi / 180.0;
 }
-
-inline double random_double() {
-    return distribution(generator);
-}
-
-inline double random_double(double min, double max) {
-    static std::uniform_real_distribution<> distribution(min, max);
-    return distribution(generator);
-}
-
 
 // Common Headers
 

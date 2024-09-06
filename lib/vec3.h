@@ -43,21 +43,21 @@ class vec3 {
     }
 
     static vec3 random() {
-        return vec3(random_double_xorshift(seed), random_double_xorshift(seed), random_double_xorshift(seed));
+        return vec3(random_double_xorshift(), random_double_xorshift(), random_double_xorshift());
     }
 
     static vec3 random(double min, double max) {
-        return vec3(random_double(min,max), random_double(min,max), random_double(min,max));
+        return vec3(random_double_xorshift(min,max), random_double_xorshift(min,max), random_double_xorshift(min,max));
     }
 
     bool near_zero() const {
-        // Return true if the vector is close to zero in all dimensions.
+        // return true if the vector is close to zero in all dimensions.
         auto s = 1e-8;
         return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
     }
 };
 
-// point3 is just an alias for vec3, but useful for geometric clarity in the code.
+// an alias for vec3
 using point3 = vec3;
 
 
@@ -108,9 +108,9 @@ inline vec3 unit_vector(const vec3& v) {
 }
 
 inline vec3 random_in_unit_sphere() {
-    double theta = acos(1 - 2 * random_double_xorshift(seed));   
-    double phi = 2 * pi * random_double_xorshift(seed);
-    double r = cbrt(random_double_xorshift(seed));   
+    double theta = acos(1 - 2 * random_double_xorshift());   
+    double phi = 2 * pi * random_double_xorshift();
+    double r = cbrt(random_double_xorshift());   
     
     double x = r * sin(theta) * cos(phi);
     double y = r * sin(theta) * sin(phi);
@@ -120,8 +120,8 @@ inline vec3 random_in_unit_sphere() {
 }
 
 inline vec3 random_in_unit_disk() {
-    auto theta = 2.0 * pi * random_double_xorshift(seed);
-    auto r = std::sqrt(random_double_xorshift(seed));
+    auto theta = 2.0 * pi * random_double_xorshift();
+    auto r = std::sqrt(random_double_xorshift());
 
     auto x = r * std::cos(theta);
     auto y = r * std::sin(theta);

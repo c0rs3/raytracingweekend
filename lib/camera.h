@@ -5,7 +5,6 @@
 #include <ctime>
 #include <sstream>
 #include <iomanip>
-#include <thread>
 #include <string>
 #include <vector>
 
@@ -15,15 +14,14 @@
 #include "../benchmark.h"
 #include "../bmp.h"
 
-
-#define THREAD_COUNT std::thread::hardware_concurrency()
+const uint16_t THREAD_COUNT = std::thread::hardware_concurrency();
 
 std::string return_current_time_and_date() {
     auto now = std::chrono::system_clock::now();
     auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
     struct tm time_info;
-    localtime_s(&time_info, &in_time_t); // Using localtime_s for thread safety
+    localtime_s(&time_info, &in_time_t);
 
     std::stringstream ss;
     ss << std::put_time(&time_info, "%Y-%m-%d %X");
@@ -32,23 +30,23 @@ std::string return_current_time_and_date() {
 
 class camera {
    public:
-    double aspect_ratio = 1.0;         // Ratio of image width over height
-    int    image_width  = 100;         // Rendered image width in pixel count
-    int    samples_per_pixel = 10;     // Count of random samples for each pixel
-    int    max_depth         = 10;     // Maximum number of ray bounces into scene
+    double aspect_ratio = 1.0;         // ratio of image width over height
+    int    image_width  = 100;         // rendered image width in pixel count
+    int    samples_per_pixel = 10;     // count of random samples for each pixel
+    int    max_depth         = 10;     // maximum number of ray bounces into scene
 
-    point3 lookfrom = point3(0,0,0);   // Point camera is looking from
-    point3 lookat   = point3(0,0,-1);  // Point camera is looking at
-    vec3   vup      = vec3(0,1,0);     // Camera-relative "up" direction
+    point3 lookfrom = point3(0,0,0);   // point camera is looking from
+    point3 lookat   = point3(0,0,-1);  // point camera is looking at
+    vec3   vup      = vec3(0,1,0);     // camera-relative "up" direction
 
-    double defocus_angle = 0;          // Variation angle of rays through each pixel
-    double focus_dist = 10;            // Distance from camera lookfrom point to plane of perfect focus
+    double defocus_angle = 0;          // variation angle of rays through each pixel
+    double focus_dist = 10;            // distance from camera lookfrom point to plane of perfect focus
 
-    double vfov = 90;                  // Vertical view angle (field of view)
+    double vfov = 90;                  // vertical view angle (field of view)
 
     std::vector<std::vector<color>> image; // 2D Vector for storing pixel calculations of threads
 
-    void render(const hittable& world) {
+    void render(const hittable& world) { // unthreaded render
         initialize();
         std::clog << "[" << return_current_time_and_date() <<"] " << "Render started \n";
         {
@@ -69,7 +67,7 @@ class camera {
         std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished \n";
     }
 
-    void threaded_render(const hittable& world){
+    void threaded_render(const hittable& world) {
         initialize();
 
         std::clog << "[" << return_current_time_and_date() <<"] " << "Render started \n";
@@ -87,7 +85,7 @@ class camera {
             
             if (t == THREAD_COUNT - 1) {
                 end_row = image_height - 1;
-                threads.push_back(this->threaded_render_rows(world, start_row, end_row));
+                threads.push_back(this->threaded_render_rows(world, start_row, end_row)); // remainder rows are asssigned to the last thread
                 break;
             }
             threads.push_back(this->threaded_render_rows(world, start_row, end_row));
@@ -124,7 +122,7 @@ class camera {
         std::clog << "\r[" << return_current_time_and_date() << "] "<< threads_remaining << " worker(s) left" << std::flush;
     }
 
-    std::thread threaded_render_rows(const hittable& world, int start_row, int end_row) {
+    std::thread threaded_render_rows(const hittable& world, const int start_row, const int end_row) {
         return std::thread([this, &world, start_row, end_row] { this->render_rows(world, start_row, end_row); });
     }
 
@@ -144,16 +142,16 @@ class camera {
     }
     
   private:
-    int    image_height;         // Rendered image height
-    double pixel_samples_scale;  // Color scale factor for a sum of pixel samples
-    point3 center;               // Camera center
-    point3 pixel00_loc;          // Location of pixel 0, 0
-    vec3   pixel_delta_u;        // Offset to pixel to the right
-    vec3   pixel_delta_v;        // Offset to pixel below
-    vec3   u, v, w;              // Camera frame basis vectors
+    int    image_height;         // rendered image height
+    double pixel_samples_scale;  // color scale factor for a sum of pixel samples
+    point3 center;               // camera center
+    point3 pixel00_loc;          // location of pixel 0, 0
+    vec3   pixel_delta_u;        // offset to pixel to the right
+    vec3   pixel_delta_v;        // offset to pixel below
+    vec3   u, v, w;              // camera frame basis vectors
 
-    vec3   defocus_disk_u;       // Defocus disk horizontal radius
-    vec3   defocus_disk_v;       // Defocus disk vertical radius
+    vec3   defocus_disk_u;       // defocus disk horizontal radius
+    vec3   defocus_disk_v;       // defocus disk vertical radius
     size_t threads_remaining = 0;
 
     void initialize() {
@@ -164,7 +162,7 @@ class camera {
 
         center = lookfrom;
 
-        // Determine viewport dimensions.
+        // determine viewport dimensions.
         auto theta = degrees_to_radians(vfov);
         auto h = tan(theta/2);
         auto viewport_height = 2 * h * focus_dist;
@@ -175,26 +173,26 @@ class camera {
         u = unit_vector(cross(vup, w));
         v = cross(w, u);
 
-        // Calculate the vectors across the horizontal and down the vertical viewport edges.
-        vec3 viewport_u = viewport_width * u;    // Vector across viewport horizontal edge
-        vec3 viewport_v = viewport_height * -v;  // Vector down viewport vertical edge
+        // calculate the vectors across the horizontal and down the vertical viewport edges.
+        vec3 viewport_u = viewport_width * u;    // vector across viewport horizontal edge
+        vec3 viewport_v = viewport_height * -v;  // vector down viewport vertical edge
 
-        // Calculate the horizontal and vertical delta vectors from pixel to pixel.
+        // calculate the horizontal and vertical delta vectors from pixel to pixel.
         pixel_delta_u = viewport_u / image_width;
         pixel_delta_v = viewport_v / image_height;
 
-        // Calculate the location of the upper left pixel.
+        // calculate the location of the upper left pixel.
         auto viewport_upper_left = center - (focus_dist * w) - viewport_u/2 - viewport_v/2;
         pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 
-        // Calculate the camera defocus disk basis vectors.
+        // calculate the camera defocus disk basis vectors.
         auto defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle / 2));
         defocus_disk_u = u * defocus_radius;
         defocus_disk_v = v * defocus_radius;
     }
 
     ray get_ray(int i, int j) const {
-        // Construct a camera ray originating from the origin and directed at randomly sampled
+        // construct a camera ray originating from the origin and directed at randomly sampled
         // point around the pixel location i, j.
 
         auto offset = sample_square();
@@ -204,23 +202,24 @@ class camera {
 
         auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
         auto ray_direction = pixel_sample - ray_origin;
+        auto ray_time = random_double_xorshift();
 
-        return ray(ray_origin, ray_direction);
+        return ray(ray_origin, ray_direction, ray_time);
     }
 
     vec3 sample_square() const {
-        // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
-        return vec3(random_double_xorshift(seed) - 0.5, random_double_xorshift(seed) - 0.5, 0);
+        // returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
+        return vec3(random_double_xorshift() - 0.5, random_double_xorshift() - 0.5, 0);
     }
 
     point3 defocus_disk_sample() const {
-        // Returns a random point in the camera defocus disk.
+        // returns a random point in the camera defocus disk.
         auto p = random_in_unit_disk();
         return center + (p[0] * defocus_disk_u) + (p[1] * defocus_disk_v);
     }
 
     color ray_color(const ray& r, int depth, const hittable& world) const {
-        // If we've exceeded the ray bounce limit, no more light is gathered.
+        // if we've exceeded the ray bounce limit, no more light is gathered.
         if (depth <= 0 && max_depth != 0)
             return color(0,0,0);
 
