@@ -26,7 +26,7 @@ const double pi = 3.1415926535897932385;
 
 // Utility Functions
 
-uint32_t map(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max) {
+inline uint32_t map(uint32_t x, uint32_t in_min, uint32_t in_max, uint32_t out_min, uint32_t out_max) {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
@@ -44,6 +44,10 @@ inline double random_double_xorshift() {
 
 inline double random_double_xorshift(double min, double max) {
     return (xorshift32(seed) / uint32d_limit) * (max - min) + min;
+}
+
+inline int random_int(int min, int max) {
+    return int(random_double_xorshift(min, max + 1));
 }
 
 inline double degrees_to_radians(double degrees) {

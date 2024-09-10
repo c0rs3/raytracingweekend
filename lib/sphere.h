@@ -6,15 +6,23 @@
 class sphere : public hittable {
   public:
     // Stationary Sphere
-    sphere(const point3& center, double radius, shared_ptr<material> mat)
-      : center1(center), radius(std::fmax(0,radius)), mat(mat), is_moving(false) {}
+    sphere(const point3& static_center, double radius, shared_ptr<material> mat)
+      : center(static_center, vec3(0,0,0)), radius(std::fmax(0,radius)), mat(mat) {
+        auto rvec = vec3(radius, radius, radius);
+        bbox = aabb(static_center - rvec, static_center + rvec);
+    }
 
     // Moving Sphere
     sphere(const point3& center1, const point3& center2, double radius, shared_ptr<material> mat)
-      : center1(center1), radius(std::fmax(0,radius)), mat(mat), is_moving(true) { center_vec = center2 - center1; }
-
+      : center(center1, center2 - center1), radius(std::fmax(0,radius)), mat(mat) {
+        auto rvec = vec3(radius, radius, radius);
+        aabb box1(center.at(0) - rvec, center.at(0) + rvec);
+        aabb box2(center.at(1) - rvec, center.at(1) + rvec);
+        bbox = aabb(box1, box2);
+    }
+    
     bool hit(const ray& r, interval ray_t, hit_record& rec) const override {
-        point3 center = is_moving ? sphere_center(r.get_time()) : center1;
+        point3 center = is_moving ? sphere_center(r.get_time()) : center_p;
         vec3 oc = center - r.origin();
         auto a = r.direction().length_squared();
         auto h = dot(r.direction(), oc);
@@ -43,16 +51,20 @@ class sphere : public hittable {
         return true;
     }
 
+    aabb bounding_box() const override { return bbox; }
+
   private:
     bool is_moving;
     double radius;
-    point3 center1;
+    point3 center_p;
     vec3 center_vec; // displacement vector
     shared_ptr<material> mat;
+    aabb bbox;
+    ray center;
 
     point3 sphere_center(double time) const {
         // Linearly interpolate from center1 to center2, where t=0 yields center1, and t=1 yields center2.
-        return center1 + time*center_vec;
+        return center_p + time*center_vec;
     }
 };
 
