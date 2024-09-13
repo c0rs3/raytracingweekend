@@ -15,7 +15,7 @@ int main() {
     camera cam;
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 400;
+    cam.image_width       = 800;
     cam.samples_per_pixel = 100;
     cam.max_depth         = 50;
 
@@ -44,7 +44,7 @@ int main() {
                     // diffuse
                     auto albedo = color::random() * color::random();
                     sphere_material = make_shared<lambertian>(albedo);
-                    auto center2 = center + vec3(0, random_double_xorshift(0, 2), 0);
+                    auto center2 = center + vec3(0, random_double_xorshift(0, 0.5), 0);
                     world.add(make_shared<sphere>(center, center2, 0.2, sphere_material));
                 } else if (choose_mat < 0.95) {
                     // metal
