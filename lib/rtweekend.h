@@ -15,14 +15,12 @@ using std::shared_ptr;
 using std::sqrt;
 using std::fabs;
 
-// Random generators & seed
-static uint32_t seed = 12346;
-
 // Constants
 
 const double infinity = std::numeric_limits<double>::infinity();
 const double uint32d_limit = static_cast<double>(UINT32_MAX);
 const double pi = 3.1415926535897932385;
+static uint32_t seed = 12346;
 
 // Utility Functions
 
