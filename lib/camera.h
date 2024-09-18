@@ -1,13 +1,9 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <chrono>
-#include <ctime>
-#include <sstream>
-#include <iomanip>
+
 #include <string>
 #include <vector>
-
 #include "rtweekend.h"
 #include "hittable.h"
 #include "material.h"
@@ -15,18 +11,6 @@
 #include "../bmp.h"
 
 const uint16_t THREAD_COUNT = std::thread::hardware_concurrency();
-
-std::string return_current_time_and_date() {
-    auto now = std::chrono::system_clock::now();
-    auto in_time_t = std::chrono::system_clock::to_time_t(now);
-
-    struct tm time_info;
-    localtime_s(&time_info, &in_time_t);
-
-    std::stringstream ss;
-    ss << std::put_time(&time_info, "%Y-%m-%d %X");
-    return ss.str();
-}
 
 class camera {
    public:
@@ -47,12 +31,13 @@ class camera {
     std::vector<std::vector<color>> image; // 2D Vector for storing pixel calculations of threads
 
     void render(const hittable& world) { // unthreaded render
-        initialize();
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Render started \n";
+        initialize(); // camera properties initialization
+        image.resize(image_height, std::vector<color>(image_width));
+
+        std::clog << "[" << return_current_time_and_date() <<"] " << "Render started" << std::endl;
         {
             benchmark::Benchmark<float> timer;
             for (int j = 0; j < image_height; j++) {
-                std::clog << "\r Scanlines remaining: " << (image_height - j) << ' ' << std::flush;
                 for (int i = 0; i < image_width; i++) {
                     color pixel_color(0,0,0);
                     for (int sample = 0; sample < samples_per_pixel; sample++) {
@@ -61,6 +46,9 @@ class camera {
                     }
                     image[j][i] = pixel_color * pixel_samples_scale; 
                 }
+                std::string equal(int(j / 5), '=');
+                std::string empty(int((image_height - j) / 5), '.');
+                std::clog << "\r[" << equal << empty << "] " << "Scanlines remaining: " << image_height - j << " " << std::flush;
             }
         }
         write_bmp("image.bmp", image, image_width, image_height);
@@ -68,9 +56,9 @@ class camera {
     }
 
     void threaded_render(const hittable& world) {
-        initialize();
+        initialize(); // camera properties initialization
 
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Render started \n";
+        std::clog << "[" << return_current_time_and_date() <<"] " << "Threaded render started \n";
 
         image.resize(image_height, std::vector<color>(image_width));
 
@@ -92,7 +80,7 @@ class camera {
         }
 
         threads_remaining = threads.size(); 
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Thread amount: " << threads.size() << std::endl;
+
         {
             benchmark::Benchmark<float> timer;
             for (auto& thread : threads) {
@@ -119,7 +107,11 @@ class camera {
             }
         }
         threads_remaining--;
-        std::clog << "\r[" << return_current_time_and_date() << "] "<< threads_remaining << " worker(s) left" << std::flush;
+
+        std::string equal((THREAD_COUNT - threads_remaining) * 2, '=');
+        std::string empty(threads_remaining * 2, ' '); 
+
+        std::clog << "\r[" << equal << empty << "] " << threads_remaining << " worker(s) left" << std::flush;
     }
 
     std::thread threaded_render_rows(const hittable& world, const int start_row, const int end_row) {
@@ -234,8 +226,8 @@ class camera {
         }
 
         vec3 unit_direction = unit_vector(r.direction());
-        auto a = 0.5*(unit_direction.y() + 1.0);
-        return (1.0-a)*color(1.0, 1.0, 1.0) + a*color(0.5, 0.7, 1.0);
+        auto a = 0.5 * (unit_direction.y() + 1.0);
+        return (1.0-a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
     }
 };
 
