@@ -18,9 +18,8 @@ using std::fabs;
 // Constants
 
 const double infinity = std::numeric_limits<double>::infinity();
-const double uint32d_limit = static_cast<double>(UINT32_MAX);
-const double pi = 3.1415926535897932385;
-static uint32_t seed = 12346;
+static const double uint32d_limit = static_cast<double>(UINT32_MAX);
+static const double pi = 3.1415926535897932385;
 
 // Utility Functions
 
@@ -41,6 +40,7 @@ inline double random_double_xorshift() {
 }
 
 inline double random_double_xorshift(double min, double max) {
+    thread_local uint32_t seed = static_cast<uint32_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
     return (xorshift32(seed) / uint32d_limit) * (max - min) + min;
 }
 

@@ -47,13 +47,12 @@ void write_bmp(const std::string& filename, const std::vector<std::vector<color>
     bmp_info_header[10] = image_height >> 16;
     bmp_info_header[11] = image_height >> 24;
 
-    // Write headers to file
+    // write headers to file
     file.write(reinterpret_cast<char*>(bmp_file_header), sizeof(bmp_file_header));
     file.write(reinterpret_cast<char*>(bmp_info_header), sizeof(bmp_info_header));
 
-    // Write pixel data in BGR format
+    // write pixel data in BGR format
     for (int j = image_height - 1; j >= 0; j--) {
-        std::clog << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; i++) {
             const color& pixel = image[j][i];
             unsigned char r = static_cast<unsigned char>(255.99 * pixel.x());
@@ -69,6 +68,6 @@ void write_bmp(const std::string& filename, const std::vector<std::vector<color>
             file.put(r);
         }
     }
-
+    std::clog << "[" << return_current_time_and_date() << "] " << "Finished writing on .bmp" << ' ';
     file.close();
 }

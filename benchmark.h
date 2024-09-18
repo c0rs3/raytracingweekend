@@ -3,6 +3,10 @@
 #define _BENCHMARK_
 #include <iostream>
 #include <chrono>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
+
 #define _BENCHMARK_BEGIN namespace benchmark {
 #define _BENCHMARK_END }
 
@@ -30,7 +34,6 @@ public:
         std::clog << "Duration: " << std::chrono::duration_cast<std::chrono::seconds>(duration).count() << "s" << std::endl;
     }
 };
-
 
 void heap_alloc(){
     std::clog << "Total (heap) allocation size: "<< t_alloc_size << " bytes" << std::endl;
@@ -61,4 +64,17 @@ void operator delete[](void* memory) noexcept {
     // std::cout << "Freed " << sizeof(memory) << " bytes" << std::endl;
     free(memory);
 }
+
+std::string return_current_time_and_date() {
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+    struct tm time_info;
+    localtime_s(&time_info, &in_time_t);
+
+    std::stringstream ss;
+    ss << std::put_time(&time_info, "%Y-%m-%d %X");
+    return ss.str();
+}
+
 #endif
