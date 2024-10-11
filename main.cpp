@@ -7,8 +7,7 @@
 #include "lib/sphere.h"
 #include "lib/material.h"
 
-#define _RENDER_TEST 1
-#define _BENCHMARK_TEST 0
+#define _RENDER_TEST 0
 
 int main() {
 #if _RENDER_TEST
@@ -73,12 +72,12 @@ int main() {
     world = hittable_list(make_shared<bvh_node>(world));
 
     cam.threaded_render(world);
-#elif _BENCHMARK_TEST
+#else 
     camera cam;
 
     cam.aspect_ratio      = 16.0 / 9.0;
-    cam.image_width       = 400;
-    cam.samples_per_pixel = 100;
+    cam.image_width       = 800;
+    cam.samples_per_pixel = 500;
     cam.max_depth         = 50;
 
     cam.vfov     = 20;
@@ -106,5 +105,6 @@ int main() {
     world = hittable_list(make_shared<bvh_node>(world));
 
     cam.threaded_render(world);
+    // cam.render(world);
 #endif
 }
