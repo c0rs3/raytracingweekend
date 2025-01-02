@@ -1,8 +1,6 @@
 #ifndef VEC3_H
 #define VEC3_H
 
-#include <immintrin.h>
-// TODO SIMD VECTOR CLASS
 class vec3 {
   public:
     double e[3];
@@ -79,7 +77,7 @@ class vec3 {
 
     bool near_zero() const {
         // return true if the vector is close to zero in all dimensions.
-        auto s = 1e-8;
+        auto s = 1e-10;
         return (fabs(e[0]) < s) && (fabs(e[1]) < s) && (fabs(e[2]) < s);
     }
 };

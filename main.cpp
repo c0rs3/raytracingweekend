@@ -8,6 +8,7 @@
 #include "lib/material.h"
 
 #define _RENDER_TEST 0
+#define _OTHER 1
 
 int main() {
 #if _RENDER_TEST
@@ -72,7 +73,7 @@ int main() {
     world = hittable_list(make_shared<bvh_node>(world));
 
     cam.threaded_render(world);
-#else 
+#elif !(_RENDER_TEST) && !(_OTHER)
     camera cam;
 
     cam.aspect_ratio      = 16.0 / 9.0;
@@ -106,5 +107,10 @@ int main() {
 
     cam.threaded_render(world);
     // cam.render(world);
+#else
+    svec3 a = {3, 3, 3};
+    svec3 b = {3, 3, 3};
+    std::cout << a.length_squared() << std::endl;
+    std::cout << a + b;
 #endif
 }
