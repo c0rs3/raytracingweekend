@@ -1,7 +1,7 @@
 #pragma once
 #include <fstream>
 
-double linear_to_gamma(double linear_component) {
+float linear_to_gamma(float linear_component) {
     if (linear_component > 0)
         return std::pow(linear_component, 1/3);
     return 0;

@@ -37,7 +37,7 @@ class aabb {
 
         for (int axis = 0; axis < 3; axis++) {
             const interval& ax = axis_interval(axis);
-            const double adinv = 1.0 / ray_dir[axis];
+            const float adinv = 1.0 / ray_dir[axis];
 
             auto t0 = (ax.min - ray_orig[axis]) * adinv;
             auto t1 = (ax.max - ray_orig[axis]) * adinv;

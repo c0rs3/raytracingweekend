@@ -42,22 +42,20 @@ public:
     float operator[](int i) const { return e[i]; }
     float& operator[](int i) { return e[i]; }
     svec3& operator+=(const svec3& v) {
-        __m128 ef = _mm_set_ps(0.0f, e[0], e[1], e[2]);
-        __m128 ff = _mm_set_ps(0.0f, v[0], v[1], v[2]);
+        __m128 ef = _mm_set_ps(0.0f, e[2], e[1], e[0]);
+        __m128 ff = _mm_set_ps(0.0f, v[2], v[1], v[0]);
 
         __m128 res = _mm_add_ps(ef, ff);
-        float resultArray[4];
         _mm_store_ps(e, res);
         
         return *this;
     }
 
     svec3& operator*=(float t) {
-        __m128 ef = _mm_set_ps(0.0f, e[0], e[1], e[2]);
+        __m128 ef = _mm_set_ps(0.0f, e[2], e[1], e[0]);
         __m128 ff = _mm_set_ps(0.0f, t, t, t);
 
         __m128 res = _mm_mul_ps(ef, ff);
-        float resultArray[4];
         _mm_store_ps(e, res);
         return *this;
     }
@@ -71,7 +69,7 @@ public:
     }
 
     float length_squared() const {
-        __m128 ef = _mm_set_ps(0.0f, e[0], e[1], e[2]);
+        __m128 ef = _mm_set_ps(0.0f, e[2], e[1], e[0]);
         __m128 res = _mm_mul_ps(ef, ef);
         float resultArray[4];
         _mm_store_ps(resultArray, res);
@@ -79,11 +77,11 @@ public:
     }
 
     static svec3 random() {
-        return svec3(random_double_xorshift(), random_double_xorshift(), random_double_xorshift());
+        return svec3(random_float_xorshift(), random_float_xorshift(), random_float_xorshift());
     }
 
-    static svec3 random(double min, double max) {
-        return svec3(random_double_xorshift(min,max), random_double_xorshift(min,max), random_double_xorshift(min,max));
+    static svec3 random(float min, float max) {
+        return svec3(random_float_xorshift(min,max), random_float_xorshift(min,max), random_float_xorshift(min,max));
     }
 
     bool near_zero() const {
@@ -98,8 +96,8 @@ inline std::ostream& operator<<(std::ostream& out, const svec3& v) {
 }
 
 inline svec3 operator+(const svec3& u, const svec3& v) {
-    __m128 ef = _mm_set_ps(0.0f, u[0], u[1], u[2]);
-    __m128 ff = _mm_set_ps(0.0f, v[0], v[1], v[2]);
+    __m128 ef = _mm_set_ps(0.0f, u[2], u[1], u[0]);
+    __m128 ff = _mm_set_ps(0.0f, v[2], v[1], v[0]);
     __m128 res = _mm_add_ps(ef, ff);
     float resultArray[4];
     _mm_store_ps(resultArray, res);
@@ -107,8 +105,8 @@ inline svec3 operator+(const svec3& u, const svec3& v) {
 }
 
 inline svec3 operator-(const svec3& u, const svec3& v) {
-    __m128 ef = _mm_set_ps(0.0f, u[0], u[1], u[2]);
-    __m128 ff = _mm_set_ps(0.0f, v[0], v[1], v[2]);
+    __m128 ef = _mm_set_ps(0.0f, u[2], u[1], u[0]);
+    __m128 ff = _mm_set_ps(0.0f, v[2], v[1], v[0]);
     __m128 res = _mm_sub_ps(ef, ff);
     float resultArray[4];
     _mm_store_ps(resultArray, res);
@@ -116,8 +114,8 @@ inline svec3 operator-(const svec3& u, const svec3& v) {
 }
 
 inline svec3 operator*(const svec3& u, const svec3& v) {
-    __m128 ef = _mm_set_ps(0.0f, u[0], u[1], u[2]);
-    __m128 ff = _mm_set_ps(0.0f, v[0], v[1], v[2]);
+    __m128 ef = _mm_set_ps(0.0f, u[2], u[1], u[0]);
+    __m128 ff = _mm_set_ps(0.0f, v[2], v[1], v[0]);
     __m128 res = _mm_mul_ps(ef, ff);
     float resultArray[4];
     _mm_store_ps(resultArray, res);
@@ -125,7 +123,7 @@ inline svec3 operator*(const svec3& u, const svec3& v) {
 }
 
 inline svec3 operator*(float t, const svec3& v) {
-    __m128 ef = _mm_set_ps(0.0f, v[0], v[1], v[2]);
+    __m128 ef = _mm_set_ps(0.0f, v[2], v[1], v[0]);
     __m128 ff = _mm_set_ps(0.0f, t, t, t);
     __m128 res = _mm_mul_ps(ef, ff);
     float resultArray[4];
@@ -158,20 +156,20 @@ inline svec3 unit_vector(const svec3& v) {
 }
 
 inline svec3 random_in_unit_sphere() {
-    double theta = acos(1 - 2 * random_double_xorshift());   
-    double phi = 2 * pi * random_double_xorshift();
-    double r = cbrt(random_double_xorshift());   
+    float theta = acos(1 - 2 * random_float_xorshift());   
+    float phi = 2 * pi * random_float_xorshift();
+    float r = cbrt(random_float_xorshift());   
     
-    double x = r * sin(theta) * cos(phi);
-    double y = r * sin(theta) * sin(phi);
-    double z = r * cos(theta);
+    float x = r * sin(theta) * cos(phi);
+    float y = r * sin(theta) * sin(phi);
+    float z = r * cos(theta);
 
     return svec3(x, y, z);
 }
 
 inline svec3 random_in_unit_disk() {
-    auto theta = 2.0 * pi * random_double_xorshift();
-    auto r = std::sqrt(random_double_xorshift());
+    auto theta = 2.0 * pi * random_float_xorshift();
+    auto r = std::sqrt(random_float_xorshift());
 
     auto x = r * std::cos(theta);
     auto y = r * std::sin(theta);
@@ -195,14 +193,14 @@ inline svec3 reflect(const svec3& v, const svec3& n) {
     return v - 2*dot(v,n)*n;
 }
 
-inline svec3 refract(const svec3& uv, const svec3& n, double etai_over_etat) {
+inline svec3 refract(const svec3& uv, const svec3& n, float etai_over_etat) {
     auto cos_theta = fmin(dot(-uv, n), 1.0);
     svec3 r_out_perp =  etai_over_etat * (uv + cos_theta*n);
     svec3 r_out_parallel = -sqrt(fabs(1.0 - r_out_perp.length_squared())) * n;
     return r_out_perp + r_out_parallel;
 }
 
-//using vec3 = svec3;
-//using point3 = vec3;
+using vec3 = svec3;
+using point3 = vec3;
 
 #endif

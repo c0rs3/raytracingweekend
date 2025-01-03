@@ -17,9 +17,9 @@ using std::fabs;
 
 // Constants
 
-const double infinity = std::numeric_limits<double>::infinity();
-static const double uint32d_limit = static_cast<double>(UINT32_MAX);
-static const double pi = 3.1415926535897932385;
+const float infinity = std::numeric_limits<float>::infinity();
+static const float uint32d_limit = static_cast<float>(UINT32_MAX);
+static const float pi = 3.1415926535897932385f;
 
 // Utility Functions
 
@@ -34,22 +34,22 @@ inline uint32_t xorshift32(uint32_t& state) {
     return state;
 }
 
-inline double random_double_xorshift() {
+inline float random_float_xorshift() {
     thread_local uint32_t seed = static_cast<uint32_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
     return xorshift32(seed) / uint32d_limit;
 }
 
-inline double random_double_xorshift(double min, double max) {
+inline float random_float_xorshift(float min, float max) {
     thread_local uint32_t seed = static_cast<uint32_t>(std::hash<std::thread::id>{}(std::this_thread::get_id()));
     return (xorshift32(seed) / uint32d_limit) * (max - min) + min;
 }
 
 inline int random_int(int min, int max) {
-    return int(random_double_xorshift(min, max + 1));
+    return int(random_float_xorshift(min, max + 1));
 }
 
-inline double degrees_to_radians(double degrees) {
-    return degrees * pi / 180.0;
+inline float degrees_to_radians(float degrees) {
+    return degrees * pi / 180.0f;
 }
 
 // Common Headers

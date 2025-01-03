@@ -14,7 +14,7 @@ const uint16_t THREAD_COUNT = std::thread::hardware_concurrency();
 
 class camera {
    public:
-    double aspect_ratio = 1.0;         // ratio of image width over height
+    float aspect_ratio = 1.0f;         // ratio of image width over height
     int    image_width  = 100;         // rendered image width in pixel count
     int    samples_per_pixel = 10;     // count of random samples for each pixel
     int    max_depth         = 10;     // maximum number of ray bounces into scene
@@ -23,10 +23,10 @@ class camera {
     point3 lookat   = point3(0,0,-1);  // point camera is looking at
     vec3   vup      = vec3(0,1,0);     // camera-relative "up" direction
 
-    double defocus_angle = 0;          // variation angle of rays through each pixel
-    double focus_dist = 10;            // distance from camera lookfrom point to plane of perfect focus
+    float defocus_angle = 0;          // variation angle of rays through each pixel
+    float focus_dist = 10;            // distance from camera lookfrom point to plane of perfect focus
 
-    double vfov = 90;                  // vertical view angle (field of view)
+    float vfov = 90;                  // vertical view angle (field of view)
 
     std::vector<std::vector<color>> image; // 2D Vector for storing pixel calculations of threads
 
@@ -135,7 +135,7 @@ class camera {
     
   private:
     int    image_height;         // rendered image height
-    double pixel_samples_scale;  // color scale factor for a sum of pixel samples
+    float pixel_samples_scale;  // color scale factor for a sum of pixel samples
     point3 center;               // camera center
     point3 pixel00_loc;          // location of pixel 0, 0
     vec3   pixel_delta_u;        // offset to pixel to the right
@@ -150,7 +150,7 @@ class camera {
         image_height = int(image_width / aspect_ratio);
         image_height = (image_height < 1) ? 1 : image_height;
 
-        pixel_samples_scale = 1.0 / samples_per_pixel;
+        pixel_samples_scale = 1.0f / samples_per_pixel;
 
         center = lookfrom;
 
@@ -158,7 +158,7 @@ class camera {
         auto theta = degrees_to_radians(vfov);
         auto h = tan(theta/2);
         auto viewport_height = 2 * h * focus_dist;
-        auto viewport_width = viewport_height * (double(image_width)/image_height);
+        auto viewport_width = viewport_height * (float(image_width)/image_height);
 
         // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
         w = unit_vector(lookfrom - lookat);
@@ -175,7 +175,7 @@ class camera {
 
         // calculate the location of the upper left pixel.
         auto viewport_upper_left = center - (focus_dist * w) - viewport_u/2 - viewport_v/2;
-        pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+        pixel00_loc = viewport_upper_left + 0.5f * (pixel_delta_u + pixel_delta_v);
 
         // calculate the camera defocus disk basis vectors.
         auto defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle / 2));
@@ -194,14 +194,14 @@ class camera {
 
         auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
         auto ray_direction = pixel_sample - ray_origin;
-        auto ray_time = random_double_xorshift();
+        auto ray_time = random_float_xorshift();
 
         return ray(ray_origin, ray_direction, ray_time);
     }
 
     vec3 sample_square() const {
         // returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
-        return vec3(random_double_xorshift() - 0.5, random_double_xorshift() - 0.5, 0);
+        return vec3(random_float_xorshift() - 0.5f, random_float_xorshift() - 0.5f, 0);
     }
 
     point3 defocus_disk_sample() const {
@@ -217,7 +217,7 @@ class camera {
 
         hit_record rec;
 
-        if (world.hit(r, interval(0.001, infinity), rec)) {
+        if (world.hit(r, interval(0.001f, infinity), rec)) {
             ray scattered;
             color attenuation;
             if (rec.mat->scatter(r, rec, attenuation, scattered))
@@ -226,8 +226,8 @@ class camera {
         }
 
         vec3 unit_direction = unit_vector(r.direction());
-        auto a = 0.5 * (unit_direction.y() + 1.0);
-        return (1.0-a) * color(1.0, 1.0, 1.0) + a * color(0.5, 0.7, 1.0);
+        auto a = 0.5f * (unit_direction.y() + 1.0f);
+        return (1.0f-a) * color(1.0f, 1.0f, 1.0f) + a * color(0.5f, 0.7f, 1.0f);
     }
 };
 
