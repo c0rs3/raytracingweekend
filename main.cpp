@@ -8,7 +8,7 @@
 #include "lib/material.h"
 
 #define _RENDER_TEST 0
-#define _OTHER 1
+#define _OTHER 0
 
 int main() {
 #if _RENDER_TEST

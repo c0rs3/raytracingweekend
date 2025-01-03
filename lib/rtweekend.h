@@ -58,5 +58,6 @@ inline double degrees_to_radians(double degrees) {
 #include "interval.h"
 #include "ray.h"
 #include "vec3.h"
+// #include "simd.h"
 
 #endif

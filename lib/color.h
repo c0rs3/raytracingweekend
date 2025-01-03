@@ -3,7 +3,7 @@
 
 #include "interval.h"
 #include "vec3.h"
-#include "simd.h"
+// #include "simd.h"
 
 using color = vec3;
 
