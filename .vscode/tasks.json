@@ -10,6 +10,10 @@
           "focus": false,
           "panel": "shared"
         },
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
         "problemMatcher": []
       },
       {
@@ -21,7 +25,8 @@
           "focus": false,
           "panel": "shared"
         },
-        "problemMatcher": []
+        "problemMatcher": [],
+        
       },
       {
         "type": "shell",

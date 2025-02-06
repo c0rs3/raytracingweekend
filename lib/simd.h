@@ -33,18 +33,23 @@ public:
     svec3 operator-() const { return svec3(_mm_sub_ps(_mm_setzero_ps(), e)); }
 
     inline float operator[](int i) const {
-        alignas(16) float temp[4];
-        _mm_store_ps(temp, e);
-        return temp[i];
+        if (i < 0 || i > 2) return 0.0f; // Handle out-of-bounds
+        switch (i) {
+            case 0: return x();
+            case 1: return y();
+            case 2: return z();
+            default: return 0.0f;
+        }
+    }
+    
+    inline float& operator[](int i) {
+        static float temp[3] = { 0.0f, 0.0f, 0.0f };  // Array to hold valid values
+        if (i < 0 || i > 2) return temp[0];  // Return the first element in case of invalid index
+        _mm_store_ss(&temp[i], e);  // Use _mm_store_ss to store the value into the array
+        return temp[i];  // Return a reference to the stored value
     }
 
-    inline float& operator[](int i) {
-        alignas(16) float temp[4];
-        _mm_store_ps(temp, e);
-        static float dummy = 0.0f; // Avoid modifying the 4th element
-        if (i < 0 || i > 2) return dummy;
-        return temp[i];
-    }
+
 
     inline svec3& operator+=(const svec3& v) {
         e = _mm_add_ps(e, v.e);
@@ -64,12 +69,18 @@ public:
     inline float length() const {
         return sqrt(length_squared());
     }
-
+    /*
     inline float length_squared() const {
         __m128 res = _mm_mul_ps(e, e);
-        alignas(16) float resultArray[4];
-        _mm_store_ps(resultArray, res);
-        return resultArray[0] + resultArray[1] + resultArray[2];
+        svec3 temp(res);
+        return temp.x() + temp.y() + temp.z();
+    }
+    */    
+   inline float length_squared() const {
+        __m128 res = _mm_mul_ps(e, e);  // e * e
+        __m128 hadd = _mm_hadd_ps(res, res);  // Horizontal add (sum the first 2, then the second 2 components)
+        hadd = _mm_hadd_ps(hadd, hadd);  // Final horizontal add to sum all components
+        return _mm_cvtss_f32(hadd);  // Extract the final sum
     }
 
     inline static svec3 random() {

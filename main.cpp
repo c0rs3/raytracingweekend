@@ -7,7 +7,7 @@
 #include "lib/sphere.h"
 #include "lib/material.h"
 
-#define _RENDER_TEST 0
+#define _RENDER_TEST 1
 #define _OTHER 0
 
 int main() {
