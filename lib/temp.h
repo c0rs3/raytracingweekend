@@ -1,20 +1,22 @@
+/*
 #ifndef SIMD_H
 #define SIMD_H
 #pragma once
 #include <immintrin.h>
-#include <iostream>
-#include <cmath>
-
-class alignas(16) svec3 {
+class alignas(64) svec3{
 public:
     __m128 e;
-
     svec3() : e{_mm_setzero_ps()} {}
-    svec3(float e0, float e1, float e2) : e{_mm_set_ps(0.0f, e2, e1, e0)} {}
-    svec3(__m128 e) : e(e) {}
+    svec3(float e0, float e1, float e2) : e{0.0f, e2, e1, e0} {}
+    svec3(__m128 e): e(e) {}
 
-    svec3(const svec3& vec) : e(vec.e) {}
-    svec3(svec3&& vec) noexcept : e(vec.e) {}
+    svec3(const svec3& vec) {
+        e = vec.e;
+    }
+
+    svec3(svec3&& vec) noexcept {
+        e = vec.e;
+    }
 
     svec3& operator=(const svec3& vec) {
         e = vec.e;
@@ -26,61 +28,72 @@ public:
         return *this;
     }
 
-    float x() const { return _mm_cvtss_f32(_mm_shuffle_ps(e, e, _MM_SHUFFLE(0, 0, 0, 0))); }
-    float y() const { return _mm_cvtss_f32(_mm_shuffle_ps(e, e, _MM_SHUFFLE(1, 1, 1, 1))); }
-    float z() const { return _mm_cvtss_f32(_mm_shuffle_ps(e, e, _MM_SHUFFLE(2, 2, 2, 2))); }
+    float x() const { return _mm_cvtss_f32(_mm_shuffle_ps(e, e, _MM_SHUFFLE(3, 3, 3, 3))); }
+    float y() const { return _mm_cvtss_f32(_mm_shuffle_ps(e, e, _MM_SHUFFLE(2, 2, 2, 2))); }
+    float z() const { return _mm_cvtss_f32(_mm_shuffle_ps(e, e, _MM_SHUFFLE(1, 1, 1, 1))); }
 
-    svec3 operator-() const { return svec3(_mm_sub_ps(_mm_setzero_ps(), e)); }
 
-    inline float operator[](int i) const {
-        alignas(16) float temp[4];
-        _mm_store_ps(temp, e);
-        return temp[i];
+    svec3 operator-() const { return svec3(-(this->x()), -(this->y()), -(this->z())); }
+
+    float operator[](int i) const {
+        switch(i) {
+            case 0: return x();
+            case 1: return y();
+            case 2: return z();
+            default: return 0.0f;  // Avoid reading the 4th component
+        }
     }
 
-    inline float& operator[](int i) {
+    float& operator[](int i) {
         alignas(16) float temp[4];
         _mm_store_ps(temp, e);
-        static float dummy = 0.0f; // Avoid modifying the 4th element
-        if (i < 0 || i > 2) return dummy;
-        return temp[i];
+    
+        if (i < 0 || i > 2) {
+            static float dummy = 0.0f; // Avoid modifying the 4th element
+            return dummy;
+        }
+    
+        return temp[i + 1]; // Mapping (0 → 1), (1 → 2), (2 → 3)
     }
 
-    inline svec3& operator+=(const svec3& v) {
+    svec3& operator+=(const svec3& v) {
         e = _mm_add_ps(e, v.e);
         return *this;
     }
 
-    inline svec3& operator*=(const float& t) {
+    svec3& operator*=(const float& t) {
         __m128 ff = _mm_set1_ps(t);
-        e = _mm_mul_ps(e, ff);
+        __m128 res = _mm_mul_ps(e, ff);
+
+        e = res;
         return *this;
     }
 
-    inline svec3& operator/=(float t) {
+    svec3& operator/=(float t) {
         return *this *= 1/t;
     }
 
-    inline float length() const {
+    float length() const {
         return sqrt(length_squared());
     }
 
-    inline float length_squared() const {
+    float length_squared() const {
         __m128 res = _mm_mul_ps(e, e);
-        alignas(16) float resultArray[4];
+        float resultArray[4];
         _mm_store_ps(resultArray, res);
-        return resultArray[0] + resultArray[1] + resultArray[2];
+        return resultArray[1] + resultArray[2] + resultArray[3];
     }
 
-    inline static svec3 random() {
+    static svec3 random() {
         return svec3(random_float_xorshift(), random_float_xorshift(), random_float_xorshift());
     }
 
-    inline static svec3 random(float min, float max) {
+    static svec3 random(float min, float max) {
         return svec3(random_float_xorshift(min,max), random_float_xorshift(min,max), random_float_xorshift(min,max));
     }
 
     bool near_zero() const {
+        // return true if the vector is close to zero in all dimensions.
         auto s = 1e-10;
         return (fabs(this->x()) < s) && (fabs(this->y()) < s) && (fabs(this->z()) < s);
     }
@@ -91,24 +104,38 @@ inline std::ostream& operator<<(std::ostream& out, const svec3& v) {
 }
 
 inline svec3 operator+(const svec3& u, const svec3& v) {
-    return svec3(_mm_add_ps(u.e, v.e));
+    __m128 res = _mm_add_ps(u.e, v.e);
+    float resultArray[4];
+    _mm_store_ps(resultArray, res);
+    return svec3(resultArray[0], resultArray[1], resultArray[2]);
 }
 
 inline svec3 operator-(const svec3& u, const svec3& v) {
-    return svec3(_mm_sub_ps(u.e, v.e));
+    __m128 res = _mm_sub_ps(u.e, v.e);
+    float resultArray[4];
+    _mm_store_ps(resultArray, res);
+    return svec3(resultArray[0], resultArray[1], resultArray[2]);
 }
 
 inline svec3 operator*(const svec3& u, const svec3& v) {
-    return svec3(_mm_mul_ps(u.e, v.e));
+    __m128 res = _mm_mul_ps(u.e, v.e);
+    float resultArray[4];
+    _mm_store_ps(resultArray, res);
+    return svec3(resultArray[0], resultArray[1], resultArray[2]);
 }
 
 inline svec3 operator*(float t, const svec3& v) {
-    return svec3(_mm_mul_ps(_mm_set1_ps(t), v.e));
+    __m128 ff = _mm_set_ps(0.0f, t, t, t);
+    __m128 res = _mm_mul_ps(v.e, ff);
+    float resultArray[4];
+    _mm_store_ps(resultArray, res);
+    return svec3(resultArray[0], resultArray[1], resultArray[2]);
 }
 
 inline float dot(const svec3& u, const svec3& v) {
     return _mm_cvtss_f32(_mm_dp_ps(u.e, v.e, 0x71));  // 0x71 keeps only first 3 components and sums them
 }
+
 
 inline svec3 cross(const svec3& u, const svec3& v) {
     __m128 u_yzx = _mm_shuffle_ps(u.e, u.e, _MM_SHUFFLE(3, 0, 2, 1));
@@ -188,32 +215,32 @@ void test_svec3() {
 
     // Constructor & Indexing
     svec3 a(1.0f, 2.0f, 3.0f);
-    std::cout << "a = (" << a.x() << ", " << a.y() << ", " << a.z() << ")\n";
+    std::cout << "a = (" << a[0] << ", " << a[1] << ", " << a[2] << ")\n";
 
     // Unary negation
     svec3 neg_a = -a;
-    std::cout << "-a = (" << neg_a.x() << ", " << neg_a.y() << ", " << neg_a.z() << ")\n";
+    std::cout << "-a = (" << neg_a[0] << ", " << neg_a[1] << ", " << neg_a[2] << ")\n";
 
     // Addition
     svec3 b(4.0f, 5.0f, 6.0f);
     svec3 c = a + b;
-    std::cout << "a + b = (" << c.x() << ", " << c.y() << ", " << c.z() << ")\n";
+    std::cout << "a + b = (" << c[0] << ", " << c[1] << ", " << c[2] << ")\n";
 
     // Subtraction
     c = a - b;
-    std::cout << "a - b = (" << c.x() << ", " << c.y() << ", " << c.z() << ")\n";
+    std::cout << "a - b = (" << c[0] << ", " << c[1] << ", " << c[2] << ")\n";
 
     // Multiplication
     c = a * b;
-    std::cout << "a * b = (" << c.x() << ", " << c.y() << ", " << c.z() << ")\n";
+    std::cout << "a * b = (" << c[0] << ", " << c[1] << ", " << c[2] << ")\n";
 
     // Scalar multiplication
     c = a * 2.0f;
-    std::cout << "a * 2 = (" << c.x() << ", " << c.y() << ", " << c.z() << ")\n";
+    std::cout << "a * 2 = (" << c[0] << ", " << c[1] << ", " << c[2] << ")\n";
 
     // Scalar division
     c = a / 2.0f;
-    std::cout << "a / 2 = (" << c.x() << ", " << c.y() << ", " << c.z() << ")\n";
+    std::cout << "a / 2 = (" << c[0] << ", " << c[1] << ", " << c[2] << ")\n";
 
     // Dot product
     float dot_product = dot(a, b);
@@ -221,14 +248,14 @@ void test_svec3() {
 
     // Cross product
     c = cross(a, b);
-    std::cout << "cross(a, b) = (" << c.x() << ", " << c.y() << ", " << c.z() << ")\n";
+    std::cout << "cross(a, b) = (" << c[0] << ", " << c[1] << ", " << c[2] << ")\n";
 
     // Length
     std::cout << "length(a) = " << a.length() << "\n";
 
     // Normalization
     c = unit_vector(a);
-    std::cout << "unit_vector(a) = (" << c.x() << ", " << c.y() << ", " << c.z() << ")\n";
+    std::cout << "unit_vector(a) = (" << c[0] << ", " << c[1] << ", " << c[2] << ")\n";
 
     // near_zero
     svec3 small(1e-11f, 1e-11f, 1e-11f);
@@ -237,20 +264,22 @@ void test_svec3() {
     // Reflection
     svec3 normal(0.0f, 1.0f, 0.0f);
     c = reflect(a, normal);
-    std::cout << "reflect(a, normal) = (" << c.x() << ", " << c.y() << ", " << c.z() << ")\n";
+    std::cout << "reflect(a, normal) = (" << c[0] << ", " << c[1] << ", " << c[2] << ")\n";
 
     // Refraction
     c = refract(a, normal, 0.5f);
-    std::cout << "refract(a, normal, 0.5) = (" << c.x() << ", " << c.y() << ", " << c.z() << ")\n";
+    std::cout << "refract(a, normal, 0.5) = (" << c[0] << ", " << c[1] << ", " << c[2] << ")\n";
 
     // Random vectors
     svec3 rand_vec = svec3::random();
-    std::cout << "random vector = (" << rand_vec.x() << ", " << rand_vec.y() << ", " << rand_vec.z() << ")\n";
+    std::cout << "random vector = (" << rand_vec[0] << ", " << rand_vec[1] << ", " << rand_vec[2] << ")\n";
 
     svec3 rand_unit = random_unit_vector();
-    std::cout << "random_unit_vector = (" << rand_unit.x() << ", " << rand_unit.y() << ", " << rand_unit.z() << ")\n";
+    std::cout << "random_unit_vector = (" << rand_unit[0] << ", " << rand_unit[1] << ", " << rand_unit[2] << ")\n";
     std::cout << a.x() << a.y() << a.z() << std::endl;
     std::cout << "=== End of Tests ===\n";
 }
 
+
 #endif
+*/

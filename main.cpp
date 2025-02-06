@@ -7,7 +7,7 @@
 #include "lib/sphere.h"
 #include "lib/material.h"
 
-#define _RENDER_TEST 1
+#define _RENDER_TEST 0
 #define _OTHER 0
 
 int main() {
@@ -108,9 +108,12 @@ int main() {
     cam.threaded_render(world);
     // cam.render(world);
 #else
-    svec3 a = {3, 3, 3};
-    svec3 b = {3, 3, 3};
-    std::cout << a.length_squared() << std::endl;
-    std::cout << a + b;
+    test_svec3();
+    /*
+    __m128 e = {1.0f, 2.0f, 3.0f, 4.0f};
+    float data[4];
+    _mm_store_ps(data, e);
+    std::cout << data[0];
+    */
 #endif
 }
