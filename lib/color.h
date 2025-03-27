@@ -2,8 +2,12 @@
 #define COLOR_H
 
 #include "interval.h"
-// #include "vec3.h"
-#include "simd.h"
+
+#ifdef USE_SIMD
+    #include "simd.h"
+#else
+    #include "vec3.h"
+#endif
 
 using color = vec3;
 

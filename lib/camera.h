@@ -1,6 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#define LOG_FILE_NAME "logged.txt"
 
 #include <string>
 #include <vector>
@@ -8,7 +9,8 @@
 #include "hittable.h"
 #include "material.h"
 #include "../benchmark.h"
-#include "../bmp.h"
+#include "bmp.h"
+#include "../log.h"
 
 const uint16_t THREAD_COUNT = std::thread::hardware_concurrency();
 
@@ -54,11 +56,10 @@ class camera {
         write_bmp("image.bmp", image, image_width, image_height);
         std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished \n";
     }
-
+    
     void threaded_render(const hittable& world) {
+        Logger logger(LOG_FILE_NAME);
         initialize(); // camera properties initialization
-
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Threaded render started \n";
 
         image.resize(image_height, std::vector<color>(image_width));
 
@@ -66,14 +67,15 @@ class camera {
 
         int remainder_rows_amount = (image_height % THREAD_COUNT) > 0 ? image_height % THREAD_COUNT : 0;
         int rows_per_thread = (image_height - remainder_rows_amount) / THREAD_COUNT;
-        
+        logger.log("===============TEST RUN===============\n TESTID:", return_current_time_and_date());
+        logger.log("[", return_current_time_and_date(), "] ", "Threaded render started");
         for (unsigned int t = 0; t < THREAD_COUNT; t++) {
             int start_row = t * rows_per_thread;
             int end_row = (t + 1) * rows_per_thread - 1;
             
             if (t == THREAD_COUNT - 1) {
                 end_row = image_height - 1;
-                threads.push_back(this->threaded_render_rows(world, start_row, end_row)); // remainder rows are asssigned to the last thread
+                threads.emplace_back(this->threaded_render_rows(world, start_row, end_row)); // remainder rows are asssigned to the last thread
                 break;
             }
             threads.push_back(this->threaded_render_rows(world, start_row, end_row));
@@ -90,7 +92,7 @@ class camera {
         std::clog << "[" << return_current_time_and_date() <<"] " << "All thread workers finished \n";
 
         write_bmp("image.bmp", image, image_width, image_height);
-        
+        logger.log("[", return_current_time_and_date(), "] ", "Render finished \n");
         std::clog << std::endl;
         std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished \n";
     }
