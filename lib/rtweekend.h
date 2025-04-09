@@ -7,6 +7,8 @@
 #include <memory>
 #include <random>
 #include <thread>
+#include <string>
+#include <vector>
 
 // C++ Std Usings
 

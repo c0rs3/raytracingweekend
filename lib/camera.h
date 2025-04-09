@@ -3,8 +3,6 @@
 
 #define LOG_FILE_NAME "logged.txt"
 
-#include <string>
-#include <vector>
 #include "rtweekend.h"
 #include "hittable.h"
 #include "material.h"
@@ -15,15 +13,15 @@
 const uint16_t THREAD_COUNT = std::thread::hardware_concurrency();
 
 class camera {
-   public:
+public:
     float aspect_ratio = 1.0f;         // ratio of image width over height
-    int    image_width  = 100;         // rendered image width in pixel count
+    int    image_width = 100;         // rendered image width in pixel count
     int    samples_per_pixel = 10;     // count of random samples for each pixel
-    int    max_depth         = 10;     // maximum number of ray bounces into scene
+    int    max_depth = 10;     // maximum number of ray bounces into scene
 
-    point3 lookfrom = point3(0,0,0);   // point camera is looking from
-    point3 lookat   = point3(0,0,-1);  // point camera is looking at
-    vec3   vup      = vec3(0,1,0);     // camera-relative "up" direction
+    point3 lookfrom = point3(0, 0, 0);   // point camera is looking from
+    point3 lookat = point3(0, 0, -1);  // point camera is looking at
+    vec3   vup = vec3(0, 1, 0);     // camera-relative "up" direction
 
     float defocus_angle = 0;          // variation angle of rays through each pixel
     float focus_dist = 10;            // distance from camera lookfrom point to plane of perfect focus
@@ -36,17 +34,17 @@ class camera {
         initialize(); // camera properties initialization
         image.resize(image_height, std::vector<color>(image_width));
 
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Render started" << std::endl;
+        std::clog << "[" << return_current_time_and_date() << "] " << "Render started" << std::endl;
         {
             benchmark::Benchmark<float> timer;
             for (int j = 0; j < image_height; j++) {
                 for (int i = 0; i < image_width; i++) {
-                    color pixel_color(0,0,0);
+                    color pixel_color(0, 0, 0);
                     for (int sample = 0; sample < samples_per_pixel; sample++) {
                         ray r = get_ray(i, j);
                         pixel_color += ray_color(r, max_depth, world);
                     }
-                    image[j][i] = pixel_color * pixel_samples_scale; 
+                    image[j][i] = pixel_color * pixel_samples_scale;
                 }
                 std::string equal(int(j / 5), '=');
                 std::string empty(int((image_height - j) / 5), '.');
@@ -54,9 +52,9 @@ class camera {
             }
         }
         write_bmp("image.bmp", image, image_width, image_height);
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished \n";
+        std::clog << "[" << return_current_time_and_date() << "] " << "Render finished \n";
     }
-    
+
     void threaded_render(const hittable& world) {
         Logger logger(LOG_FILE_NAME);
         initialize(); // camera properties initialization
@@ -72,7 +70,7 @@ class camera {
         for (unsigned int t = 0; t < THREAD_COUNT; t++) {
             int start_row = t * rows_per_thread;
             int end_row = (t + 1) * rows_per_thread - 1;
-            
+
             if (t == THREAD_COUNT - 1) {
                 end_row = image_height - 1;
                 threads.emplace_back(this->threaded_render_rows(world, start_row, end_row)); // remainder rows are asssigned to the last thread
@@ -81,7 +79,7 @@ class camera {
             threads.push_back(this->threaded_render_rows(world, start_row, end_row));
         }
 
-        threads_remaining = threads.size(); 
+        threads_remaining = threads.size();
 
         {
             benchmark::Benchmark<float> timer;
@@ -89,12 +87,12 @@ class camera {
                 thread.join();
             }
         }
-        std::clog << "[" << return_current_time_and_date() <<"] " << "All thread workers finished \n";
+        std::clog << "[" << return_current_time_and_date() << "] " << "All thread workers finished \n";
 
         write_bmp("image.bmp", image, image_width, image_height);
         logger.log("[", return_current_time_and_date(), "] ", "Render finished \n");
         std::clog << std::endl;
-        std::clog << "[" << return_current_time_and_date() <<"] " << "Render finished \n";
+        std::clog << "[" << return_current_time_and_date() << "] " << "Render finished \n";
     }
 
     void render_rows(const hittable& world, int start_row, int end_row) {
@@ -111,7 +109,7 @@ class camera {
         threads_remaining--;
 
         std::string equal((THREAD_COUNT - threads_remaining) * 2, '=');
-        std::string empty(threads_remaining * 2, ' '); 
+        std::string empty(threads_remaining * 2, ' ');
 
         std::clog << "\r[" << equal << empty << "] " << threads_remaining << " worker(s) left" << std::flush;
     }
@@ -134,8 +132,8 @@ class camera {
     std::thread threaded_render_row(const hittable& world, int i) {
         return std::thread([this, &world, i] { this->render_row(world, i); });
     }
-    
-  private:
+
+private:
     int    image_height;         // rendered image height
     float pixel_samples_scale;  // color scale factor for a sum of pixel samples
     point3 center;               // camera center
@@ -158,9 +156,9 @@ class camera {
 
         // determine viewport dimensions.
         auto theta = degrees_to_radians(vfov);
-        auto h = tan(theta/2);
+        auto h = tan(theta / 2);
         auto viewport_height = 2 * h * focus_dist;
-        auto viewport_width = viewport_height * (float(image_width)/image_height);
+        auto viewport_width = viewport_height * (float(image_width) / image_height);
 
         // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
         w = unit_vector(lookfrom - lookat);
@@ -176,7 +174,7 @@ class camera {
         pixel_delta_v = viewport_v / image_height;
 
         // calculate the location of the upper left pixel.
-        auto viewport_upper_left = center - (focus_dist * w) - viewport_u/2 - viewport_v/2;
+        auto viewport_upper_left = center - (focus_dist * w) - viewport_u / 2 - viewport_v / 2;
         pixel00_loc = viewport_upper_left + 0.5f * (pixel_delta_u + pixel_delta_v);
 
         // calculate the camera defocus disk basis vectors.
@@ -191,8 +189,8 @@ class camera {
 
         auto offset = sample_square();
         auto pixel_sample = pixel00_loc
-                          + ((i + offset.x()) * pixel_delta_u)
-                          + ((j + offset.y()) * pixel_delta_v);
+            + ((i + offset.x()) * pixel_delta_u)
+            + ((j + offset.y()) * pixel_delta_v);
 
         auto ray_origin = (defocus_angle <= 0) ? center : defocus_disk_sample();
         auto ray_direction = pixel_sample - ray_origin;
@@ -215,7 +213,7 @@ class camera {
     color ray_color(const ray& r, int depth, const hittable& world) const {
         // if we've exceeded the ray bounce limit, no more light is gathered.
         if (depth <= 0 && max_depth != 0)
-            return color(0,0,0);
+            return color(0, 0, 0);
 
         hit_record rec;
 
@@ -223,13 +221,13 @@ class camera {
             ray scattered;
             color attenuation;
             if (rec.mat->scatter(r, rec, attenuation, scattered))
-                return attenuation * ray_color(scattered, depth-1, world);
-            return color(0,0,0);
+                return attenuation * ray_color(scattered, depth - 1, world);
+            return color(0, 0, 0);
         }
 
         vec3 unit_direction = unit_vector(r.direction());
         auto a = 0.5f * (unit_direction.y() + 1.0f);
-        return (1.0f-a) * color(1.0f, 1.0f, 1.0f) + a * color(0.5f, 0.7f, 1.0f);
+        return (1.0f - a) * color(1.0f, 1.0f, 1.0f) + a * color(0.5f, 0.7f, 1.0f);
     }
 };
 
