@@ -109,8 +109,8 @@ int main() {
 
 	world = hittable_list(make_shared<bvh_node>(world));
 
+	cam.render(world);
 	cam.threaded_render(world);
-	// cam.render(world);
 #else
 	// test_svec3();
 #endif
