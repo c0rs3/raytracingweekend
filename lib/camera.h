@@ -6,9 +6,9 @@
 #include "rtweekend.h"
 #include "hittable.h"
 #include "material.h"
-#include "../benchmark.h"
+#include "benchmark.h"
 #include "bmp.h"
-#include "../log.h"
+#include "log.h"
 
 const uint16_t THREAD_COUNT = std::thread::hardware_concurrency();
 

@@ -8,8 +8,7 @@ public:
 	aabb() {} // The default AABB is empty, since intervals are empty by default.
 
 	aabb(const interval& x, const interval& y, const interval& z)
-		: x(x), y(y), z(z) {
-	}
+		: x(x), y(y), z(z) {}
 
 	aabb(const point3& a, const point3& b) {
 		// Treat the two points a and b as extrema for the bounding box, so we don't require a

@@ -19,14 +19,14 @@ class Benchmark {
 private:
 public:
 
-	std::chrono::duration<type> duration;
-    std::chrono::steady_clock::time_point start; 
+    std::chrono::duration<type> duration;
+    std::chrono::steady_clock::time_point start;
 
-    Benchmark(){
+    Benchmark() {
         start = std::chrono::high_resolution_clock::now();
     }
 
-    ~Benchmark(){
+    ~Benchmark() {
         std::chrono::steady_clock::time_point end = std::chrono::high_resolution_clock::now();
         duration = end - start;
         std::clog << std::endl;
@@ -35,21 +35,21 @@ public:
     }
 };
 
-void heap_alloc(){
-    std::clog << "Total (heap) allocation size: "<< t_alloc_size << " bytes" << std::endl;
-    std::clog << "Total (heap) allocation count: "<< t_alloc_count << " bytes" << std::endl;
+void heap_alloc() {
+    std::clog << "Total (heap) allocation size: " << t_alloc_size << " bytes" << std::endl;
+    std::clog << "Total (heap) allocation count: " << t_alloc_count << " bytes" << std::endl;
 }
 
 _BENCHMARK_END
 
-void* operator new(size_t size) noexcept{
+void* operator new(size_t size) noexcept {
     // std::cout << "Allocated " << size << " bytes of memory" << std::endl;
     benchmark::t_alloc_size += size;
     benchmark::t_alloc_count += 1;
     return malloc(size);
 }
 
-void* operator new[](size_t size) noexcept{
+void* operator new[](size_t size) noexcept {
     benchmark::t_alloc_size += size;
     benchmark::t_alloc_count += 1;
     return malloc(size);
