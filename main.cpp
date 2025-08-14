@@ -9,7 +9,7 @@
 #include "lib/sphere.h"
 #include "lib/material.h"
 
-#define _RENDER_TEST 0
+#define _RENDER_TEST 1
 #define _OTHER 0
 
 int main() {
@@ -76,7 +76,7 @@ int main() {
 
 	world = hittable_list(make_shared<bvh_node>(world));
 
-	cam.threaded_render(world);
+	cam.render(world);
 #elif !(_RENDER_TEST) && !(_OTHER)
 	camera cam;
 
