@@ -1,5 +1,9 @@
-logged.txt
-build
-*.ppm
-image.bmp
+# User files
+*.txt
 *.bmp
+*.png
+
+# Build files etc.
+.vscode
+build
+out
