@@ -1,19 +1,16 @@
-// #define USE_SIMD
+#include <rtweekend.h>
+#include <bvh.h>
+#include <camera.h>
+#include <hittable.h>
+#include <hittable_list.h>
+#include <sphere.h>
+#include <material.h>
 
-#include "lib/rtweekend.h"
-
-#include "lib/bvh.h"
-#include "lib/camera.h"
-#include "lib/hittable.h"
-#include "lib/hittable_list.h"
-#include "lib/sphere.h"
-#include "lib/material.h"
-
-#define _RENDER_TEST 1
-#define _OTHER 0
+#define EXPLICIT_LOG
+#define RENDER_TEST 0
 
 int main() {
-#if _RENDER_TEST
+#if RENDER_TEST
 	camera cam;
 
 	cam.aspect_ratio = 16.0 / 9.0;
@@ -76,8 +73,8 @@ int main() {
 
 	world = hittable_list(make_shared<bvh_node>(world));
 
-	cam.render(world);
-#elif !(_RENDER_TEST) && !(_OTHER)
+	cam.threaded_render(world);
+#elif !(RENDER_TEST)
 	camera cam;
 
 	cam.aspect_ratio = 16.0f / 9.0f;
@@ -109,9 +106,9 @@ int main() {
 
 	world = hittable_list(make_shared<bvh_node>(world));
 
-	cam.render(world);
 	cam.threaded_render(world);
+	cam.render(world);
 #else
-	// test_svec3();
+
 #endif
 }
