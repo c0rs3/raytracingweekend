@@ -1,7 +1,5 @@
 # User files
 *.txt
-*.bmp
-*.png
 
 # Build files etc.
 .vscode
