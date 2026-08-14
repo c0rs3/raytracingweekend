@@ -6,7 +6,6 @@
 #include <sphere.h>
 #include <material.h>
 
-#define EXPLICIT_LOG
 #define RENDER_TEST 0
 
 int main() {

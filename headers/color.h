@@ -1,12 +1,9 @@
-#ifndef COLOR_H
-#define COLOR_H
-
-#include "interval.h"
+#pragma once
 
 #ifdef USE_SIMD
-#include "simd.h"
+    #include "simd.h"
 #else
-#include "vec3.h"
+    #include "vec3.h"
 #endif
 
 using color = vec3;
@@ -27,5 +24,3 @@ void write_color(std::ostream& out, const color& pixel_color) { // u
     out << rbyte << ' ' << gbyte << ' ' << bbyte << '\n';
 }
 */
-
-#endif

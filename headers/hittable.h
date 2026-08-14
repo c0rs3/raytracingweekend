@@ -1,7 +1,9 @@
-#ifndef HITTABLE_H
-#define HITTABLE_H
+#pragma once
 
 #include "aabb.h"
+#include "interval.h"
+#include "ray.h"
+#include "vec3.h"
 
 class material;
 
@@ -32,5 +34,3 @@ public:
 
 	virtual aabb bounding_box() const = 0;
 };
-
-#endif

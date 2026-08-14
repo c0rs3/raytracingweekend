@@ -5,6 +5,16 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
+include(FetchContent)
+
+FetchContent_Declare(
+    Benchtools
+    GIT_REPOSITORY https://github.com/tunariy/benchtools.git
+    GIT_TAG v1.1
+)
+
+FetchContent_MakeAvailable(Benchtools)
+
 if(MSVC)
   # MSVC / Release
   set(CMAKE_CXX_FLAGS_RELEASE "/Ox /Ob2 /GL /fp:fast /arch:AVX2 /MD /EHs-c-")
@@ -36,6 +46,12 @@ add_executable(rtend
 target_include_directories(rtend PRIVATE
     "${CMAKE_SOURCE_DIR}/headers"
     "${CMAKE_SOURCE_DIR}/benchtools/headers"
+)
+
+target_link_libraries(rtend PUBLIC 
+    Benchtools::Timer
+    Benchtools::Benchmark
+    Benchtools::Logger
 )
 
 message("Done")

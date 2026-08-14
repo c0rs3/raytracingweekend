@@ -1,47 +1,40 @@
-#ifndef INTERVAL_H
-#define INTERVAL_H
+#pragma once
+
+#include "rtweekend.h"
 
 class interval {
-public:
-	float min, max;
+  public:
+    float min, max;
 
-	interval() : min(+RINFINITY), max(-RINFINITY) {} // Default interval is empty
+    interval() : min(+RINFINITY), max(-RINFINITY) {}  // Default interval is empty
 
-	interval(float min, float max) : min(min), max(max) {}
+    interval(float min, float max) : min(min), max(max) {}
 
-	interval(const interval& a, const interval& b) {
-		// Create the interval tightly enclosing the two input intervals.
-		min = a.min <= b.min ? a.min : b.min;
-		max = a.max >= b.max ? a.max : b.max;
-	}
+    interval(const interval& a, const interval& b) {
+        // Create the interval tightly enclosing the two input intervals.
+        min = a.min <= b.min ? a.min : b.min;
+        max = a.max >= b.max ? a.max : b.max;
+    }
 
-	float size() const {
-		return max - min;
-	}
+    float size() const { return max - min; }
 
-	bool contains(float x) const {
-		return min <= x && x <= max;
-	}
+    bool contains(float x) const { return min <= x && x <= max; }
 
-	bool surrounds(float x) const {
-		return min < x && x < max;
-	}
+    bool surrounds(float x) const { return min < x && x < max; }
 
-	float clamp(float x) const {
-		if (x < min) return min;
-		if (x > max) return max;
-		return x;
-	}
+    float clamp(float x) const {
+        if (x < min) return min;
+        if (x > max) return max;
+        return x;
+    }
 
-	interval expand(float delta) const {
-		auto padding = delta / 2;
-		return interval(min - padding, max + padding);
-	}
+    interval expand(float delta) const {
+        auto padding = delta / 2;
+        return interval(min - padding, max + padding);
+    }
 
-	static const interval empty, universe;
+    static const interval empty, universe;
 };
 
-const interval interval::empty = interval(+1 * RINFINITY, -1 * RINFINITY);
-const interval interval::universe = interval(-1 * RINFINITY, +1 * RINFINITY);
-
-#endif
+inline const interval interval::empty = interval(+1 * RINFINITY, -1 * RINFINITY);
+inline const interval interval::universe = interval(-1 * RINFINITY, +1 * RINFINITY);
